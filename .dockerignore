@@ -1,0 +1,11 @@
+.git
+node_modules
+.next
+data
+.renders
+.env*
+!.env.example
+*.tsbuildinfo
+screenshots
+docs/Analytics
+*.pen

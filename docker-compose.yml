@@ -1,0 +1,63 @@
+# docker compose up -d   then open http://localhost:3000
+# Settings come from .env (copy .env.example). DATABASE_URL and storage paths are set here.
+
+x-app: &app
+  build: .
+  image: vidfiddle:local
+  restart: unless-stopped
+  env_file:
+    - path: .env
+      required: false
+  volumes:
+    - media:/data
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vidfiddle
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vidfiddle}
+      POSTGRES_DB: vidfiddle
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vidfiddle -d vidfiddle"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Runs migrations at startup, then scheduled jobs, local renders, and YouTube downloads.
+  worker:
+    <<: *app
+    command: ["npm", "run", "worker"]
+    environment:
+      DATABASE_URL: postgres://vidfiddle:${POSTGRES_PASSWORD:-vidfiddle}@postgres:5432/vidfiddle
+      DATA_DIR: /data
+      APP_INTERNAL_URL: http://app:3000
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  app:
+    <<: *app
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    environment:
+      PORT: "3000" # the container port; set APP_PORT to change the host port
+      DATABASE_URL: postgres://vidfiddle:${POSTGRES_PASSWORD:-vidfiddle}@postgres:5432/vidfiddle
+      DATA_DIR: /data
+      WORKER_URL: http://worker:3001
+    depends_on:
+      # The worker applies migrations before it reports healthy.
+      worker:
+        condition: service_healthy
+
+volumes:
+  postgres:
+  media:
