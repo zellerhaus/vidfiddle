@@ -88,7 +88,9 @@ class OpenAIPlanner implements ScenePlanner {
             "shown while its narration plays. Write one image prompt per scene that shows the idea " +
             "concretely: a specific subject, setting, lighting and camera framing. Never put text, " +
             "letters, numbers, logos, captions or UI in an image. Never depict a real, identifiable " +
-            `person. Compose for a ${orientation} frame with the subject centered, because the frame ` +
+            "person, a celebrity, or a famous fictional character, and don't describe costumes that " +
+            "imitate one; use generic figures instead. " +
+            `Compose for a ${orientation} frame with the subject centered, because the frame ` +
             "slowly zooms and the lower third is covered by captions. All scenes share one visual style.",
         },
         {

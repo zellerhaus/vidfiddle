@@ -70,6 +70,19 @@ export function splitIntoScenes(script: string, targetWords = 20): string[] {
   return scenes;
 }
 
+/** Whether an error is an image provider refusing the prompt (as opposed to a network or quota failure). */
+export function isContentRejection(error: unknown): boolean {
+  const message = error instanceof Error ? error.message : String(error);
+  return /safety system|content.policy|moderation|image_generation_user_error/i.test(message);
+}
+
+function genericScenePrompt(narration: string): string {
+  return (
+    "A symbolic still image evoking the idea of this narration, using objects, places and light rather " +
+    `than people or characters: "${narration}". No faces, no costumes, no text, no logos.`
+  );
+}
+
 async function exists(file: string): Promise<boolean> {
   try {
     return (await stat(file)).size > 0;
@@ -140,9 +153,16 @@ export async function renderVideo(opts: RenderOptions): Promise<RenderResult> {
   await pool(plan.scenes, opts.concurrency ?? 4, async (scene, i) => {
     await Promise.all([
       produce(file(i, "mp3"), (tmp) => providers.voice.speak(scene.narration, tmp)),
-      produce(file(i, "png"), (tmp) =>
-        providers.visuals.still(`${scene.visual}\n\nStyle: ${plan.style}`, aspect, tmp)
-      ),
+      produce(file(i, "png"), async (tmp) => {
+        try {
+          await providers.visuals.still(`${scene.visual}\n\nStyle: ${plan.style}`, aspect, tmp);
+        } catch (error) {
+          if (!isContentRejection(error)) throw error;
+          // One refused image shouldn't sink the whole video: fall back to a symbolic scene.
+          log(`Scene ${i + 1}: image prompt refused by the safety filter, retrying with a generic prompt`);
+          await providers.visuals.still(`${genericScenePrompt(scene.narration)}\n\nStyle: ${plan.style}`, aspect, tmp);
+        }
+      }),
     ]);
     log(`Scene ${i + 1}: voice and image ready`);
   });

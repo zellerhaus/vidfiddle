@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { buildAss, groupWords } from "../src/lib/video-engine/captions";
-import { cleanScript, splitIntoScenes } from "../src/lib/video-engine/pipeline";
+import { cleanScript, isContentRejection, splitIntoScenes } from "../src/lib/video-engine/pipeline";
 
 const words = (spec: [string, number, number][]) => spec.map(([word, start, end]) => ({ word, start, end }));
 
@@ -73,4 +73,11 @@ test("buildAss never shows two caption lines at once", () => {
     .filter((l) => l.startsWith("Dialogue:"))
     .map((l) => l.split(",").slice(1, 3).map(seconds));
   for (let i = 1; i < spans.length; i++) assert.ok(spans[i][0] >= spans[i - 1][1], `event ${i} overlaps the previous one`);
+});
+
+test("isContentRejection recognizes safety refusals but not other failures", () => {
+  assert.ok(isContentRejection(new Error('OpenAI images/generations failed: 400 {"error": {"message": "Your request was rejected by the safety system."')));
+  assert.ok(isContentRejection(new Error('400 {"type": "image_generation_user_error"}')));
+  assert.ok(!isContentRejection(new Error("OpenAI images/generations failed: 429 rate limit")));
+  assert.ok(!isContentRejection(new Error("fetch failed")));
 });

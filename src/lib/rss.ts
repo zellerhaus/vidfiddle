@@ -20,7 +20,7 @@ interface ParsedFeed {
 export async function parseFeed(url: string): Promise<ParsedFeed> {
   const response = await fetch(url, {
     headers: {
-      "User-Agent": "VideoGenerator/1.0",
+      "User-Agent": "Vidfiddle/1.0 (+https://github.com/zellerhaus/vidfiddle)",
       Accept: "application/rss+xml, application/xml, text/xml",
     },
   });

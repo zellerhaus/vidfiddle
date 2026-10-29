@@ -12,7 +12,7 @@ export async function extractContent(url: string): Promise<ExtractedContent> {
   const response = await fetch(url, {
     headers: {
       "User-Agent":
-        "Mozilla/5.0 (compatible; VideoGenerator/1.0; +https://videogen.app)",
+        "Mozilla/5.0 (compatible; Vidfiddle/1.0 (+https://github.com/zellerhaus/vidfiddle); +https://videogen.app)",
     },
   });
 
