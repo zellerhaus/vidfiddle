@@ -8,8 +8,8 @@
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "test": "tsx --test tests/*.test.ts",
-    "worker": "tsx src/worker/index.ts",
-    "migrate": "tsx src/db/migrate-cli.ts"
+    "worker": "tsx --env-file-if-exists=.env src/worker/index.ts",
+    "migrate": "tsx --env-file-if-exists=.env src/db/migrate-cli.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
