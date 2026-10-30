@@ -65,13 +65,3 @@ Set `ELEVENLABS_API_KEY`, then restart. Settings shows ElevenLabs as **Connected
 Set `CREATIFY_API_ID` and `CREATIFY_API_KEY`. AI Shorts, Link to Video and AI Avatar become
 selectable on the Style step. Render one of each. The check-creatify job moves each video to
 completed.
-
-### YouTube clips
-- **What works with no extra keys:** the worker downloads the video (yt-dlp) and cuts clips.
-- **Transcription needs `DEEPGRAM_API_KEY`.** Without it, a source stops with "Deepgram API not
-  configured".
-- **Captioned clips need `CREATOMATE_API_KEY`.**
-- **`SUBMAGIC_API_KEY` replaces the whole pipeline** with Submagic's Magic Clips.
-
-Paste a YouTube link on YouTube Clips. The source moves through downloading, transcribing,
-analyzing and processing, and the clips appear with captions.

@@ -8,5 +8,8 @@ docker compose:
    migration as already applied. Nothing is recreated.
 2. Videos already stored in Supabase Storage keep working as external URLs. New media goes to the
    storage driver you configure.
-3. Replace `RAILWAY_WORKER_URL`/`RAILWAY_WORKER_SECRET` with `WORKER_URL`/`WORKER_SECRET` (the old
-   names still work), and remove the Vercel cron configuration: the worker runs the schedule now.
+3. Remove `RAILWAY_WORKER_URL`, `RAILWAY_WORKER_SECRET` and the Vercel cron configuration: the worker
+   runs the schedule now and needs no URL or secret of its own.
+4. YouTube clips are gone. If your database holds clips, the worker renames `youtube_sources` and
+   `youtube_clips` to `youtube_sources_removed` and `youtube_clips_removed` rather than dropping them.
+   The videos made from clips stay in History. Drop the renamed tables once you no longer need them.

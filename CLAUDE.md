@@ -10,13 +10,13 @@ social media. See README.md for what it does and how to run it.
 - **Styling:** Tailwind CSS 4 + shadcn/ui primitives restyled as BlockFrame (see Design below), Lucide icons
 - **Deployment:** docker compose (`app`, `worker`, `postgres`)
 - **APIs:** OpenAI or Anthropic (text), OpenAI (local video engine), Creatify (optional hosted video),
-  Publer or LightPost (publishing), Deepgram/Creatomate/Submagic (optional YouTube clips)
+  Publer or LightPost (publishing)
 
 ## Commands
 
 ```bash
 npm run dev          # web app (localhost:3000)
-npm run worker       # worker: migrations, cron schedule, local renders, YouTube jobs
+npm run worker       # worker: migrations, cron schedule, local renders
 npm test             # node:test via tsx (TEST_DATABASE_URL enables the DB-backed test)
 npm run lint
 npx tsc --noEmit
@@ -30,11 +30,11 @@ npm run migrate      # apply migrations
 src/
 ├── app/                  # Next.js App Router pages and route.ts API handlers
 │   ├── api/cron/         # Scheduled jobs; the worker calls them with CRON_SECRET
-│   ├── api/webhooks/     # Publer and Submagic callbacks
+│   ├── api/webhooks/     # Publer callbacks
 │   └── media/[...key]/   # Serves local-disk media with Range support (public)
 ├── components/           # Feature folders + ui/ (shadcn primitives)
 ├── db/                   # Drizzle schema, lazy client, migrator (adopts pre-Drizzle databases)
-├── worker/               # Worker process: cron runner, render loop, YouTube download/cut
+├── worker/               # Worker process: cron runner, render loop, health check
 └── lib/
     ├── video-engine/     # Local engine: scene planning, TTS, images, word timing, ffmpeg
     ├── local-engine.ts   # Contract for local-engine videos between app and worker
@@ -43,7 +43,7 @@ src/
     ├── storage.ts        # local disk or S3-compatible storage, public URLs
     ├── publishers/       # getPublisher(): Publer or LightPost behind one interface
     ├── generation-queue.ts # Queue of posts waiting for a script and video (Auto Mode, bulk create)
-    ├── publer.ts, creatify.ts, creatomate.ts, submagic.ts, deepgram.ts
+    ├── publer.ts, creatify.ts
     └── supabase/types.ts # Shared types; row types are inferred from src/db/schema.ts
 drizzle/                  # Generated migrations (0000 is the production baseline)
 tests/                    # node:test files

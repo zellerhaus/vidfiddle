@@ -37,6 +37,5 @@ export const SOFTWARE_CREDITS: Credit[] = [
   { name: "shadcn/ui and Radix UI", license: "MIT", url: "https://ui.shadcn.com" },
   { name: "Lucide icons", license: "ISC", url: "https://lucide.dev" },
   { name: "FFmpeg", license: "LGPL/GPL", url: "https://ffmpeg.org", note: "Rendering, run as a separate program" },
-  { name: "yt-dlp", license: "Unlicense", url: "https://github.com/yt-dlp/yt-dlp", note: "YouTube downloads" },
   { name: "LightPost", license: "MIT", url: "https://github.com/brainstormity/LightPost", note: "Self-hosted publishing" },
 ];

@@ -25,7 +25,7 @@ You need Node.js 22+, PostgreSQL 15+ and an ffmpeg built with libass (on macOS,
 docker run -d --name vidfiddle-pg -e POSTGRES_PASSWORD=dev -p 5432:5432 postgres:17-alpine
 
 npm ci
-cp .env.example .env    # set APP_PASSWORD, CRON_SECRET, WORKER_SECRET, OPENAI_API_KEY, and the
+cp .env.example .env    # set APP_PASSWORD, CRON_SECRET, OPENAI_API_KEY, and the
                         # "Running without Docker" block at the bottom, with
                         # DATABASE_URL=postgres://postgres:dev@localhost:5432/postgres
 npm run migrate
@@ -70,7 +70,7 @@ relevant part of [docs/TESTING.md](docs/TESTING.md) and say in the PR what you c
 - **Copy** in the app and docs is short and plain. Say what a thing does.
 - **Settings:** a new environment variable gets a commented entry in `.env.example`.
 - **Commits** are one imperative sentence describing the change, like `Add Pexels footage provider` or
-  `Cut YouTube clips frame-accurately`. No prefixes.
+  `Snap shot cuts to word starts`. No prefixes.
 
 ## Adding an engine provider
 

@@ -4,68 +4,28 @@
  * - Applies database migrations at startup.
  * - Calls the app's cron routes on schedule (replaces Vercel Cron).
  * - Renders local-engine videos (needs OPENAI_API_KEY).
- * - Serves POST /download and POST /cut for the YouTube clip pipeline (replaces the Railway worker).
+ * - Serves GET /health, which reports healthy once migrations have run.
  * - Deletes cron_logs older than CRON_LOG_RETENTION_DAYS (default 14).
  *
  * Run with `npm run worker`.
  */
-import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { createServer } from "node:http";
 import { lt, sql } from "drizzle-orm";
 import { closeDb, db } from "@/db";
 import { runMigrations } from "@/db/migrate";
 import { cron_logs } from "@/db/schema";
 import { startCron } from "./cron";
 import { requeueInterruptedRenders, startRenderLoop } from "./render";
-import { cutClip, downloadSource } from "./youtube";
 
 const PORT = Number(process.env.WORKER_PORT ?? 3001);
-const SECRET = process.env.WORKER_SECRET || process.env.RAILWAY_WORKER_SECRET;
 const APP_URL = (process.env.APP_INTERNAL_URL ?? "http://localhost:3000").replace(/\/$/, "");
 const RETENTION_DAYS = Number(process.env.CRON_LOG_RETENTION_DAYS ?? 14);
 
-async function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
-  let body = "";
-  for await (const chunk of req) body += chunk;
-  return body ? JSON.parse(body) : {};
-}
-
-function send(res: ServerResponse, status: number, body: unknown) {
-  res.writeHead(status, { "Content-Type": "application/json" }).end(JSON.stringify(body));
-}
-
-// Same request and response shapes as the old Railway worker, so src/lib/worker-client.ts works
-// unchanged. Jobs are accepted immediately and report back through the database.
-const server = createServer(async (req, res) => {
-  try {
-    if (req.method === "GET" && req.url === "/health") return send(res, 200, { status: "ok" });
-    if (req.method !== "POST" || (req.url !== "/download" && req.url !== "/cut")) {
-      return send(res, 404, { error: "Not found" });
-    }
-    if (!SECRET) return send(res, 500, { error: "WORKER_SECRET not configured" });
-    if (req.headers.authorization !== `Bearer ${SECRET}`) return send(res, 401, { error: "Unauthorized" });
-
-    const body = await readJson(req);
-    if (req.url === "/download") {
-      const { youtubeUrl, sourceId } = body as { youtubeUrl?: string; sourceId?: string };
-      if (!youtubeUrl || !sourceId) return send(res, 400, { error: "Missing required fields: youtubeUrl, sourceId" });
-      send(res, 200, { accepted: true });
-      void downloadSource(youtubeUrl, sourceId);
-    } else {
-      const { videoUrl, startTime, endTime, clipId } = body as {
-        videoUrl?: string;
-        startTime?: number;
-        endTime?: number;
-        clipId?: string;
-      };
-      if (!videoUrl || startTime === undefined || endTime === undefined || !clipId) {
-        return send(res, 400, { error: "Missing required fields: videoUrl, startTime, endTime, clipId" });
-      }
-      send(res, 200, { accepted: true });
-      void cutClip({ videoUrl, startTime, endTime, clipId });
-    }
-  } catch (error) {
-    send(res, 500, { error: error instanceof Error ? error.message : "Worker error" });
-  }
+// Docker Compose starts the app once this answers, so the app never sees an unmigrated database.
+const server = createServer((req, res) => {
+  const ok = req.method === "GET" && req.url === "/health";
+  res.writeHead(ok ? 200 : 404, { "Content-Type": "application/json" });
+  res.end(JSON.stringify(ok ? { status: "ok" } : { error: "Not found" }));
 });
 
 async function pruneCronLogs(): Promise<void> {

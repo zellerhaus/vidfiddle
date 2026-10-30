@@ -28,12 +28,12 @@
 
 ---
 
-Feed it an RSS feed, a URL or a YouTube link. It splits each post into a few video-sized ideas and writes
+Feed it an RSS feed or a URL. It splits each post into a few video-sized ideas and writes
 a 30–60 second script for each in your brand voice. Then it renders the videos, writes a caption per
 platform, and queues everything for review. Nothing posts until you approve it.
 
 ```
-RSS / URL / YouTube → segments → script → video → review queue → captions → scheduled posts
+RSS / URL → segments → script → video → review queue → captions → scheduled posts
 ```
 
 ## What the videos look like
@@ -95,9 +95,6 @@ NASA and NOAA text is in the public domain; the images, voices and captions are 
   - **[Creatify](https://creatify.ai):** hosted stock-footage and AI-avatar videos (paid, optional).
 - **Publishing** goes through [Publer](https://publer.com) (hosted, paid) or
   [LightPost](https://github.com/brainstormity/LightPost) (self-hosted, free).
-- **YouTube clips:** finds the most shareable moments in a long video and cuts captioned clips
-  (optional; uses Deepgram plus Creatomate or Submagic).
-
 Auto mode runs the whole pipeline on new feed posts daily. To catch up on a backlog, select posts on
 **Content** and create a video from each at once. Either way, videos wait in the review queue for
 approval.
@@ -122,7 +119,7 @@ Requirements: Docker with Compose, and an OpenAI API key.
 ```bash
 git clone https://github.com/zellerhaus/vidfiddle.git
 cd vidfiddle
-cp .env.example .env    # set APP_PASSWORD, CRON_SECRET, WORKER_SECRET and OPENAI_API_KEY
+cp .env.example .env    # set APP_PASSWORD, CRON_SECRET and OPENAI_API_KEY
 docker compose up -d
 ```
 
@@ -131,11 +128,11 @@ Open http://localhost:3000 and sign in with `APP_PASSWORD`. Add a feed under **F
 
 The first build takes a few minutes. Compose starts three services:
 
-| Service    | What it does                                                                |
-| ---------- | --------------------------------------------------------------------------- |
-| `app`      | The web app (Next.js) on port 3000                                          |
-| `worker`   | Runs migrations, scheduled jobs, local-engine renders and YouTube downloads |
-| `postgres` | The database                                                                |
+| Service    | What it does                                             |
+| ---------- | -------------------------------------------------------- |
+| `app`      | The web app (Next.js) on port 3000                       |
+| `worker`   | Runs migrations, scheduled jobs and local-engine renders |
+| `postgres` | The database                                             |
 
 Videos and images live in the `media` volume. Back up both volumes, `postgres` and `media`.
 
@@ -147,7 +144,7 @@ most:
 | Setting                                  | Purpose                                                                 |
 | ---------------------------------------- | ----------------------------------------------------------------------- |
 | `APP_PASSWORD`                           | The single login. This is a one-person app.                             |
-| `CRON_SECRET`, `WORKER_SECRET`           | Shared secrets between the app and the worker. Any long random strings. |
+| `CRON_SECRET`                            | Shared secret between the app and the worker. Any long random string.   |
 | `OPENAI_API_KEY`                         | Scripts, captions and the local video engine.                           |
 | `ANTHROPIC_API_KEY`, `LLM_PROVIDER`      | Use Claude for scripts and captions instead.                            |
 | `PUBLIC_URL`                             | The app's public address. See below.                                    |
@@ -181,12 +178,11 @@ used.
 ## Running without Docker
 
 You need Node.js 22+, PostgreSQL 15+, and an ffmpeg built with libass (for burned-in captions; Debian
-and Ubuntu packages include it, and on macOS use `brew install ffmpeg-full`). yt-dlp is needed only for
-YouTube clips.
+and Ubuntu packages include it, and on macOS use `brew install ffmpeg-full`).
 
 ```bash
 npm ci
-cp .env.example .env    # also set DATABASE_URL, WORKER_URL and APP_INTERNAL_URL
+cp .env.example .env    # also set DATABASE_URL and APP_INTERNAL_URL
 npm run migrate
 npm run build && npm start    # the web app
 npm run worker                # in another terminal

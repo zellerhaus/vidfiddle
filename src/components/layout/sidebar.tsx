@@ -16,7 +16,6 @@ import {
   LogOut,
   ChevronRight,
   ChevronLeft,
-  Youtube,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +30,6 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
   { name: "RSS Feeds", href: "/feeds", icon: Rss },
   { name: "Content", href: "/content", icon: FileText },
-  { name: "YouTube Clips", href: "/youtube", icon: Youtube },
   { name: "Queue", href: "/queue", icon: Inbox, showBadge: true },
   { name: "Calendar", href: "/calendar", icon: Calendar },
   { name: "History", href: "/history", icon: History },

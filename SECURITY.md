@@ -17,7 +17,6 @@ Knowing the design helps tell a bug from a choice:
 - It's a single-user app behind one password (`APP_PASSWORD`). Sessions are HMAC-signed cookies.
 - `/media/...` is public on purpose, because social platforms fetch videos by URL. File keys are
   unguessable; anyone with a link can still open that file.
-- `/api/cron/...` is guarded by `CRON_SECRET` and the worker by `WORKER_SECRET`. Publer webhooks are
-  checked against an HMAC signature. Submagic doesn't sign its webhooks, so Vidfiddle gives Submagic a
-  webhook URL with a token derived from `CRON_SECRET` and the video, and ignores calls without it.
+- `/api/cron/...` is guarded by `CRON_SECRET`. The worker accepts no requests apart from a health
+  check. Publer webhooks are checked against an HMAC signature.
 - Put it behind HTTPS if it's reachable from the internet, and use long random values for every secret.

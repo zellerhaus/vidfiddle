@@ -9,8 +9,6 @@ import {
   scheduled_posts,
   settings,
   videos,
-  youtube_clips,
-  youtube_sources,
 } from "@/db/schema";
 
 export type Json =
@@ -49,46 +47,8 @@ export type CronType =
   | "check-feeds"
   | "process-queue"
   | "check-creatify"
-  | "check-youtube"
   | "verify-publer";
 export type CronExecutionStatus = "success" | "error" | "partial";
-
-export interface WordTimestamp {
-  word: string;
-  start: number;
-  end: number;
-  confidence: number;
-}
-
-export interface ViralMoment {
-  startTime: number;
-  endTime: number;
-  title: string;
-  hookReason: string;
-  viralScore: number;
-  words: WordTimestamp[];
-}
-
-export interface CaptionStylePreset {
-  id: string;
-  name: string;
-  templateId?: string;
-  fontFamily: string;
-  fontSize: number;
-  fontWeight: string;
-  textColor: string;
-  activeWordColor: string;
-  strokeColor: string;
-  strokeWidth: number;
-  position: "center" | "bottom" | "top";
-  animation: "pop" | "bounce" | "fade" | "none";
-  wordsPerGroup: number;
-}
-
-export interface YouTubeClipPreferences {
-  targetDuration: number;
-  maxClips: number;
-}
 
 type RssFeedRow = typeof rss_feeds.$inferSelect;
 type RssFeedInsertRow = typeof rss_feeds.$inferInsert;
@@ -106,10 +66,6 @@ type GenerationQueueRow = typeof generation_queue.$inferSelect;
 type GenerationQueueInsertRow = typeof generation_queue.$inferInsert;
 type PublicationEventRow = typeof publication_events.$inferSelect;
 type PublicationEventInsertRow = typeof publication_events.$inferInsert;
-type YouTubeSourceRow = typeof youtube_sources.$inferSelect;
-type YouTubeSourceInsertRow = typeof youtube_sources.$inferInsert;
-type YouTubeClipRow = typeof youtube_clips.$inferSelect;
-type YouTubeClipInsertRow = typeof youtube_clips.$inferInsert;
 type BrandGuidelineRowRaw = typeof brand_guidelines.$inferSelect;
 type BrandGuidelineRow = Omit<
   BrandGuidelineRowRaw,
@@ -165,16 +121,6 @@ export interface Database {
         Row: PublicationEventRow;
         Insert: PublicationEventInsertRow;
         Update: Partial<PublicationEventInsertRow>;
-      };
-      youtube_sources: {
-        Row: YouTubeSourceRow;
-        Insert: YouTubeSourceInsertRow;
-        Update: Partial<YouTubeSourceInsertRow>;
-      };
-      youtube_clips: {
-        Row: YouTubeClipRow;
-        Insert: YouTubeClipInsertRow;
-        Update: Partial<YouTubeClipInsertRow>;
       };
       brand_guidelines: {
         Row: BrandGuidelineRow;
@@ -299,27 +245,6 @@ export interface CronLogInsert {
 export type BrandGuideline = BrandGuidelineRow;
 export type BrandGuidelineInsert = BrandGuidelineInsertRow;
 export type BrandGuidelineUpdate = Partial<BrandGuidelineInsertRow>;
-
-export type YouTubeSourceStatus =
-  | "pending"
-  | "downloading"
-  | "transcribing"
-  | "analyzing"
-  | "processing"
-  | "completed"
-  | "failed";
-
-export type YouTubeClipStatus =
-  | "pending"
-  | "cutting"
-  | "rendering_captions"
-  | "completed"
-  | "failed";
-
-export type YouTubeSource = YouTubeSourceRow;
-export type YouTubeSourceInsert = YouTubeSourceInsertRow;
-export type YouTubeClip = YouTubeClipRow;
-export type YouTubeClipInsert = YouTubeClipInsertRow;
 
 export interface BrandGuidelineTyped {
   id: string;

@@ -30,5 +30,5 @@ test("configuredJobs applies overrides and lets jobs be turned off", () => {
   const jobs = configuredJobs({ CRON_CHECK_FEEDS: "0 */6 * * *", CRON_CHECK_CREATIFY: "off" });
   assert.equal(jobs.find((j) => j.name === "check-feeds")?.schedule, "0 */6 * * *");
   assert.ok(!jobs.some((j) => j.name === "check-creatify"));
-  assert.equal(jobs.find((j) => j.name === "check-youtube")?.schedule, "* * * * *");
+  assert.equal(jobs.find((j) => j.name === "verify-publer")?.schedule, "*/10 * * * *");
 });

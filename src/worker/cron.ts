@@ -15,7 +15,6 @@ const DEFAULT_JOBS: CronJob[] = [
   { name: "check-feeds", schedule: "0 8 * * *" },
   { name: "process-queue", schedule: "0 9 * * *" },
   { name: "check-creatify", schedule: "*/2 * * * *" },
-  { name: "check-youtube", schedule: "* * * * *" },
   { name: "verify-publer", schedule: "*/10 * * * *" },
 ];
 

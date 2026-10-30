@@ -29,7 +29,7 @@ services:
       timeout: 5s
       retries: 10
 
-  # Runs migrations at startup, then scheduled jobs, local renders, and YouTube downloads.
+  # Runs migrations at startup, then scheduled jobs and local renders.
   worker:
     <<: *app
     command: ["npm", "run", "worker"]
@@ -56,7 +56,6 @@ services:
       DATABASE_URL: postgres://vidfiddle:${POSTGRES_PASSWORD:-vidfiddle}@postgres:5432/vidfiddle
       DATA_DIR: /data
       MUSIC_DIR: /music
-      WORKER_URL: http://worker:3001
     depends_on:
       # The worker applies migrations before it reports healthy.
       worker:

@@ -3,7 +3,6 @@ import {
   boolean,
   check,
   customType,
-  doublePrecision,
   foreignKey,
   index,
   integer,
@@ -17,13 +16,10 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import type {
-  CaptionStylePreset,
   CronExecutionStatus,
   CronType,
   Json,
   Platform,
-  YouTubeClipPreferences,
-  WordTimestamp,
 } from "../lib/supabase/types";
 
 const iso_timestamp_tz = customType<{
@@ -340,83 +336,6 @@ export const publication_events = pgTable(
       "publication_events_event_type_check",
       sql`${table.event_type} = ANY (ARRAY['scheduled'::text, 'published'::text, 'failed'::text, 'removed'::text])`
     ),
-  ]
-);
-
-export const youtube_sources = pgTable(
-  "youtube_sources",
-  {
-    id: uuid().default(sql`uuid_generate_v4()`).primaryKey().notNull(),
-    youtube_url: text().notNull(),
-    youtube_video_id: text().notNull(),
-    title: text(),
-    channel_name: text(),
-    duration_seconds: integer(),
-    source_video_url: text(),
-    transcript: jsonb().$type<
-      | {
-          words: WordTimestamp[];
-          fullTranscript: string;
-          durationSeconds: number;
-        }
-      | null
-    >(),
-    caption_style: jsonb().$type<CaptionStylePreset | null>(),
-    clip_preferences: jsonb().$type<YouTubeClipPreferences | null>(),
-    status: text().default("pending").notNull(),
-    error_message: text(),
-    created_at: iso_timestamp_tz("created_at").default(sql`now()`).notNull(),
-    updated_at: iso_timestamp_tz("updated_at").default(sql`now()`).notNull(),
-    submagic_project_id: text(),
-  },
-  (table) => [
-    index("idx_youtube_sources_status").on(table.status),
-    index("idx_youtube_sources_youtube_video_id").on(table.youtube_video_id),
-  ]
-);
-
-export const youtube_clips = pgTable(
-  "youtube_clips",
-  {
-    id: uuid().default(sql`uuid_generate_v4()`).primaryKey().notNull(),
-    youtube_source_id: uuid().notNull(),
-    blog_post_id: uuid(),
-    video_id: uuid(),
-    clip_index: integer().notNull(),
-    title: text().notNull(),
-    start_time: doublePrecision().notNull(),
-    end_time: doublePrecision().notNull(),
-    duration_seconds: doublePrecision().notNull(),
-    viral_score: doublePrecision(),
-    hook_reason: text(),
-    transcript_words: jsonb().$type<WordTimestamp[] | null>(),
-    raw_clip_url: text(),
-    captioned_clip_url: text(),
-    creatomate_render_id: text(),
-    status: text().default("pending").notNull(),
-    error_message: text(),
-    created_at: iso_timestamp_tz("created_at").default(sql`now()`).notNull(),
-    updated_at: iso_timestamp_tz("updated_at").default(sql`now()`).notNull(),
-  },
-  (table) => [
-    index("idx_youtube_clips_source_id").on(table.youtube_source_id),
-    index("idx_youtube_clips_status").on(table.status),
-    index("idx_youtube_clips_video_id").on(table.video_id),
-    foreignKey({
-      columns: [table.youtube_source_id],
-      foreignColumns: [youtube_sources.id],
-      name: "youtube_clips_youtube_source_id_fkey",
-    }).onDelete("cascade"),
-    foreignKey({
-      columns: [table.blog_post_id],
-      foreignColumns: [blog_posts.id],
-      name: "youtube_clips_blog_post_id_fkey",
-    }).onDelete("set null"),
-    foreignKey({
-      columns: [table.video_id],
-      foreignColumns: [videos.id],
-      name: "youtube_clips_video_id_fkey",
-    }).onDelete("set null"),
   ]
 );
 
