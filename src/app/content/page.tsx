@@ -61,7 +61,7 @@ export default async function ContentPage() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="new">
-            <ContentList posts={newPosts} />
+            <ContentList posts={newPosts} selectable />
           </TabsContent>
           <TabsContent value="converting">
             <ContentList posts={convertingPosts} />

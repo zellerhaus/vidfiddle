@@ -17,8 +17,11 @@ Start the stack (`docker compose up -d`), sign in, then:
 4. **Auto Mode:** turn on Auto Mode for a feed. When a new post arrives, the check-feeds and
    process-queue jobs (or Test Run on Auto Mode Status) render a video into the Approval Queue.
    Approve it there.
-5. **Delete:** delete a video from History. Its file is removed from storage.
-6. **Pacing and music:** render the same script at Slow and Fast. Fast cuts to a new shot every
+5. **Bulk create:** on Content, select a few New posts and choose Create videos. Each moves to
+   Converting, gets a script, renders, and lands in the Approval Queue. Posts that already have a
+   video are skipped.
+6. **Delete:** delete a video from History. Its file is removed from storage.
+7. **Pacing and music:** render the same script at Slow and Fast. Fast cuts to a new shot every
    2–3 seconds. With tracks in `music/` (or the starter pack), music plays under the voice and dips
    while it speaks; "No music" leaves only the voice.
 

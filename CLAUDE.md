@@ -42,6 +42,7 @@ src/
     ├── claude.ts         # Script and caption generation (provider-neutral despite the name)
     ├── storage.ts        # local disk or S3-compatible storage, public URLs
     ├── publishers/       # getPublisher(): Publer or LightPost behind one interface
+    ├── generation-queue.ts # Queue of posts waiting for a script and video (Auto Mode, bulk create)
     ├── publer.ts, creatify.ts, creatomate.ts, submagic.ts, deepgram.ts
     └── supabase/types.ts # Shared types; row types are inferred from src/db/schema.ts
 drizzle/                  # Generated migrations (0000 is the production baseline)

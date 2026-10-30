@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,6 +30,7 @@ import {
   Calendar,
   ChevronDown,
   Layers,
+  Loader2,
 } from "lucide-react";
 import { SegmentSelector } from "./segment-selector";
 import { SegmentPreview } from "./segment-preview";
@@ -36,6 +38,8 @@ import type { BlogPostWithFeed, ContentSegment } from "@/lib/supabase/types";
 
 interface ContentListProps {
   posts: BlogPostWithFeed[];
+  /** Show checkboxes and bulk actions (the New tab). */
+  selectable?: boolean;
 }
 
 const statusConfig = {
@@ -45,8 +49,55 @@ const statusConfig = {
   ignored: { label: "Ignored", variant: "secondary" as const },
 };
 
-export function ContentList({ posts }: ContentListProps) {
+export function ContentList({ posts, selectable = false }: ContentListProps) {
   const router = useRouter();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<"create_videos" | "ignore" | null>(null);
+  // Posts can leave the list after a refresh; only count ones still shown.
+  const selectedIds = posts.filter((post) => selected.has(post.id)).map((post) => post.id);
+  const allSelected = posts.length > 0 && selectedIds.length === posts.length;
+
+  function toggle(postId: string, checked: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(postId);
+      else next.delete(postId);
+      return next;
+    });
+  }
+
+  async function runBulk(action: "create_videos" | "ignore") {
+    setBulkAction(action);
+    try {
+      const response = await fetch("/api/content/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, postIds: selectedIds }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Failed to update the selected posts");
+
+      if (action === "ignore") {
+        toast.success(`Ignored ${data.ignored} ${data.ignored === 1 ? "post" : "posts"}`);
+      } else {
+        const skipped = data.skipped ? ` Skipped ${data.skipped} that already had a video or were queued.` : "";
+        if (data.queued > 0) {
+          toast.success(`Creating ${data.queued} ${data.queued === 1 ? "video" : "videos"}`, {
+            description: `Each one goes to the Approval Queue when it's ready.${skipped}`,
+            action: { label: "Open queue", onClick: () => router.push("/queue") },
+          });
+        } else {
+          toast.info(`Nothing to create.${skipped}`);
+        }
+      }
+      setSelected(new Set());
+      router.refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update the selected posts");
+    } finally {
+      setBulkAction(null);
+    }
+  }
   const [multiVideoDialogOpen, setMultiVideoDialogOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [segments, setSegments] = useState<ContentSegment[]>([]);
@@ -102,6 +153,35 @@ export function ContentList({ posts }: ContentListProps) {
 
   return (
     <>
+      {selectable && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 border-2 border-black bg-white px-4 py-3 shadow-hard-sm">
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <Checkbox
+              checked={allSelected ? true : selectedIds.length > 0 ? "indeterminate" : false}
+              onCheckedChange={(checked) => setSelected(checked === true ? new Set(posts.map((p) => p.id)) : new Set())}
+              aria-label="Select all posts"
+            />
+            {selectedIds.length > 0 ? `${selectedIds.length} selected` : "Select all"}
+          </label>
+          {selectedIds.length > 0 ? (
+            <div className="ml-auto flex items-center gap-2">
+              <span className="hidden text-xs text-muted-foreground md:inline">
+                Uses your video defaults from Settings
+              </span>
+              <Button size="sm" variant="outline" onClick={() => runBulk("ignore")} disabled={bulkAction !== null}>
+                {bulkAction === "ignore" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <EyeOff className="h-4 w-4 mr-2" />}
+                Ignore
+              </Button>
+              <Button size="sm" onClick={() => runBulk("create_videos")} disabled={bulkAction !== null}>
+                {bulkAction === "create_videos" ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Video className="h-4 w-4 mr-2" />}
+                Create {selectedIds.length} {selectedIds.length === 1 ? "video" : "videos"}
+              </Button>
+            </div>
+          ) : (
+            <span className="text-xs text-muted-foreground">Select posts to make a video from each one at once.</span>
+          )}
+        </div>
+      )}
       <div className="grid gap-4">
         {posts.map((post) => {
           const status = statusConfig[post.status];
@@ -109,6 +189,14 @@ export function ContentList({ posts }: ContentListProps) {
           return (
             <Card key={post.id} className="hover:bg-muted/30 transition-colors">
               <CardContent className="flex items-start gap-4 p-4">
+                {selectable && (
+                  <Checkbox
+                    checked={selected.has(post.id)}
+                    onCheckedChange={(checked) => toggle(post.id, checked === true)}
+                    aria-label={`Select ${post.title}`}
+                    className="mt-3"
+                  />
+                )}
                 <div className="flex h-10 w-10 items-center justify-center border-2 border-black bg-pastel-blue flex-shrink-0">
                   <FileText className="h-5 w-5" />
                 </div>

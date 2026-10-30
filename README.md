@@ -98,7 +98,8 @@ NASA and NOAA text is in the public domain; the images, voices and captions are 
 - **YouTube clips:** finds the most shareable moments in a long video and cuts captioned clips
   (optional; uses Deepgram plus Creatomate or Submagic).
 
-Auto mode runs the whole pipeline on new feed posts daily. Videos still wait in the review queue for
+Auto mode runs the whole pipeline on new feed posts daily. To catch up on a backlog, select posts on
+**Content** and create a video from each at once. Either way, videos wait in the review queue for
 approval.
 
 ## What it costs
