@@ -10,6 +10,8 @@ test("decodeEntities handles numeric, hex and named entities", () => {
 test("htmlToText strips markup that a feed description carried", () => {
   const description = '\n  <div class="c-field c-field--name-title">\n  <div class="c-field__item">Ocean Facts: What are Kelvin waves?</div></div>';
   assert.equal(htmlToText(description), "Ocean Facts: What are Kelvin waves?");
+  // NOAA escapes the markup inside its description.
+  assert.equal(htmlToText('&lt;div class="c-field"&gt;Kelvin waves&lt;/div&gt; move slowly.'), "Kelvin waves move slowly.");
 });
 
 test("feedItemToBlogPost stores plain text title, content and excerpt", () => {

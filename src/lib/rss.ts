@@ -136,7 +136,9 @@ export function decodeEntities(text: string): string {
 
 /** Plain text from feed HTML: tags removed, entities decoded, whitespace collapsed. */
 export function htmlToText(html: string): string {
-  return decodeEntities(html.replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
+  // Strip, decode, then strip again: some feeds escape the HTML inside their descriptions.
+  const strip = (text: string) => text.replace(/<[^>]*>/g, " ");
+  return strip(decodeEntities(strip(html))).replace(/\s+/g, " ").trim();
 }
 
 export function feedItemToBlogPost(
