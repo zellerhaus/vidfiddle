@@ -12,6 +12,17 @@ export const OUTPUT_SIZE: Record<AspectRatio, { width: number; height: number }>
   "1x1": { width: 1080, height: 1080 },
 };
 
+/** How often the picture changes. Medium and fast cut each scene's image into shots of about
+ * this many seconds; slow holds one shot per scene. */
+export type Pacing = "slow" | "medium" | "fast";
+export const SHOT_SECONDS: Record<Pacing, number | null> = { slow: null, medium: 4, fast: 2.5 };
+/** One base camera move plus up to three punch-ins per image, so shots don't repeat. */
+export const MAX_SHOTS_PER_SCENE = 4;
+
+/** Background music moods. The planner picks one per video; library tracks are filed under one. */
+export const MOODS = ["upbeat", "calm", "inspiring", "dramatic", "playful"] as const;
+export type Mood = (typeof MOODS)[number];
+
 export interface Scene {
   /** Verbatim slice of the script, spoken over this scene. */
   narration: string;
@@ -22,6 +33,8 @@ export interface Scene {
 export interface ScenePlan {
   /** Shared art direction applied to every scene's image. */
   style: string;
+  /** Music mood that fits the script. Missing from plans saved before music existed. */
+  mood?: Mood;
   scenes: Scene[];
 }
 
@@ -56,6 +69,11 @@ export interface VisualProvider {
 
 export interface Transcriber {
   words(audioFile: string): Promise<Word[]>;
+}
+
+export interface MusicProvider {
+  /** Returns an audio file to use as the video's music bed, or null when none is available. */
+  track(opts: { mood: Mood; style: string; seconds: number; workDir: string }): Promise<string | null>;
 }
 
 export interface EngineProviders {

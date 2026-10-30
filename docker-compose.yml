@@ -10,6 +10,8 @@ x-app: &app
       required: false
   volumes:
     - media:/data
+    # Your own music tracks, filed by mood (see music/README.md).
+    - ./music:/music:ro
 
 services:
   postgres:
@@ -34,6 +36,7 @@ services:
     environment:
       DATABASE_URL: postgres://vidfiddle:${POSTGRES_PASSWORD:-vidfiddle}@postgres:5432/vidfiddle
       DATA_DIR: /data
+      MUSIC_DIR: /music
       APP_INTERNAL_URL: http://app:3000
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3001/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
@@ -52,6 +55,7 @@ services:
       PORT: "3000" # the container port; set APP_PORT to change the host port
       DATABASE_URL: postgres://vidfiddle:${POSTGRES_PASSWORD:-vidfiddle}@postgres:5432/vidfiddle
       DATA_DIR: /data
+      MUSIC_DIR: /music
       WORKER_URL: http://worker:3001
     depends_on:
       # The worker applies migrations before it reports healthy.

@@ -73,6 +73,15 @@ A local-engine video is a `videos` row with `status: "pending"`, no `creatify_jo
 `style_options.apiVersion: "local"` (`LocalEngineOptions`). The worker claims it with
 `FOR UPDATE SKIP LOCKED`, renders, stores `generated/<id>.mp4`, writes captions, and sets
 `approval_status: "pending_review"`. The app never calls the engine directly.
+`LocalEngineOptions` also carries `pacing` (slow/medium/fast: shots of ~whole scene/4s/2.5s cut on
+word starts, `shotLengths` in the pipeline) and `music` (auto/a mood/none) with `musicVolume`.
+Build options with `buildLocalEngineOptions`; it normalizes loose request and settings values.
+
+### Engine audio
+Every render ends in `finishAudio` (src/lib/video-engine/ffmpeg.ts): narration leveled to about
+-14 LUFS (raw TTS is ~-30), plus an optional music bed about 15 dB under the voice with sidechain
+ducking. Music providers live in `src/lib/video-engine/music.ts`: a mood-filed library
+(`assets/music` + `MUSIC_DIR`) and ElevenLabs Music, chosen by `musicFromEnv`.
 
 ### Media
 Use `src/lib/storage.ts`: `saveFile`, `publicUrl`, `keyFromUrl`, `localPath`. Social platforms fetch

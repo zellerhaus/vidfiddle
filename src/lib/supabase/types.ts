@@ -239,6 +239,10 @@ export interface VideoDefaults {
   targetDuration: number;
   scriptStyle: string;
   scriptTone: string;
+  /** Local engine: slow | medium | fast. */
+  pacing?: string;
+  /** Local engine: auto, a mood, or none. */
+  musicMood?: string;
 }
 
 export type ContentSegment = ContentSegmentRow;

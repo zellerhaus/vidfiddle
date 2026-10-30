@@ -23,6 +23,8 @@ import {
   type CreatifyStyle,
   type CreatifyAspectRatio,
 } from "@/lib/creatify";
+import { MUSIC_OPTIONS, PACING_OPTIONS, type MusicChoice } from "@/lib/local-engine";
+import type { Pacing } from "@/lib/video-engine/types";
 import { VoiceSelector } from "@/components/settings/voice-selector";
 import { AvatarSelector } from "@/components/settings/avatar-selector";
 import type { VideoDefaults, CreatifyApiMethod } from "@/lib/supabase/types";
@@ -37,6 +39,10 @@ export interface StyleOptions {
   voiceoverVolume: number;
   backgroundMusicVolume: number;
   voiceId: string | null;
+  /** Local engine only. */
+  pacing?: Pacing;
+  /** Local engine only. */
+  musicMood?: MusicChoice;
 }
 
 interface StyleStepProps {
@@ -74,6 +80,8 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
   const [voiceoverVolume, setVoiceoverVolume] = useState(0.8);
   const [backgroundMusicVolume, setBackgroundMusicVolume] = useState(0.3);
   const [voiceId, setVoiceId] = useState<string | null>(null);
+  const [pacing, setPacing] = useState<Pacing>("medium");
+  const [musicMood, setMusicMood] = useState<MusicChoice>("auto");
   const [isLoadingDefaults, setIsLoadingDefaults] = useState(true);
   // Unknown until defaults load; the AI Shorts, Link to Video and Avatar methods need a Creatify key.
   const [creatifyConfigured, setCreatifyConfigured] = useState<boolean | null>(null);
@@ -125,6 +133,12 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
           if (defaults.voiceId) {
             setVoiceId(defaults.voiceId);
           }
+          if (PACING_OPTIONS.some((p) => p.value === defaults.pacing)) {
+            setPacing(defaults.pacing as Pacing);
+          }
+          if (MUSIC_OPTIONS.some((m) => m.value === defaults.musicMood)) {
+            setMusicMood(defaults.musicMood as MusicChoice);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch video defaults:", error);
@@ -152,6 +166,8 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
       voiceoverVolume,
       backgroundMusicVolume,
       voiceId,
+      pacing,
+      musicMood,
     });
   }
 
@@ -324,6 +340,64 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
                   onChange={(event) => setVisualStyle(event.target.value)}
                   placeholder="e.g. flat paper-cut illustration, warm colors"
                 />
+              </div>
+              <div>
+                <Label className="text-base font-medium">Pacing</Label>
+                <p className="text-sm text-muted-foreground mb-3">
+                  How often the picture changes. Same cost at every pace.
+                </p>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {PACING_OPTIONS.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setPacing(option.value)}
+                      className={cn(
+                        "flex flex-col items-start gap-1 border-2 p-3 text-left transition-all",
+                        pacing === option.value
+                          ? "border-black bg-primary shadow-hard-sm"
+                          : "border-black bg-white hover:bg-accent"
+                      )}
+                    >
+                      <p className="font-bold">{option.label}</p>
+                      <p className="text-xs text-muted-foreground">{option.description}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label>Music</Label>
+                  <Select value={musicMood} onValueChange={(value) => setMusicMood(value as MusicChoice)}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MUSIC_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {musicMood !== "none" && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Music level</Label>
+                      <span className="text-sm text-muted-foreground">
+                        {Math.round(backgroundMusicVolume * 100)}%
+                      </span>
+                    </div>
+                    <Slider
+                      value={[backgroundMusicVolume]}
+                      onValueChange={([value]) => setBackgroundMusicVolume(value)}
+                      min={0.05}
+                      max={1}
+                      step={0.05}
+                      className="w-full pt-3"
+                    />
+                  </div>
+                )}
               </div>
             </>
           )}

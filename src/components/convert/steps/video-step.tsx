@@ -81,6 +81,8 @@ export function VideoStep({
           visualStyle: styleOptions.visualStyle,
           videoLength: styleOptions.videoLength,
           avatarId: styleOptions.avatarId,
+          pacing: styleOptions.pacing,
+          musicMood: styleOptions.musicMood,
         }),
       });
 

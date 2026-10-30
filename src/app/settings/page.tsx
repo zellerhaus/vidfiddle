@@ -10,6 +10,8 @@ import { getPublisher, type PublisherAccount } from "@/lib/publishers";
 import { isLLMConfigured, llmProviderName } from "@/lib/llm";
 import { isLocalEngineConfigured } from "@/lib/local-engine";
 import { getStorageDriver } from "@/lib/storage";
+import { listTracks } from "@/lib/video-engine/music";
+import { join, resolve } from "node:path";
 import { PLATFORM_COLORS } from "@/lib/platform-colors";
 import type { Platform } from "@/lib/supabase/types";
 import { VideoDefaultsForm } from "@/components/settings";
@@ -41,7 +43,13 @@ async function getSettings() {
     }
   }
 
+  // Music: your folder (MUSIC_DIR) plus the bundled starter tracks; ElevenLabs takes over when keyed.
+  const userMusicDir = process.env.MUSIC_DIR || join(process.env.DATA_DIR || "data", "music");
+  const [userTracks, bundledTracks] = await Promise.all([listTracks([userMusicDir]), listTracks([resolve("assets/music")])]);
+  const elevenLabsMusic = !!process.env.ELEVENLABS_API_KEY && process.env.MUSIC_PROVIDER?.toLowerCase() !== "library";
+
   return {
+    music: { userTracks: userTracks.length, bundledTracks: bundledTracks.length, elevenLabs: elevenLabsMusic },
     llm: {
       connected: isLLMConfigured(),
       provider: llmProvider,
@@ -98,6 +106,20 @@ function connectionRows(settings: Settings): ConnectionRow[] {
       status: settings.localEngine ? { tone: "success", label: "Ready" } : { tone: "secondary", label: "Needs OPENAI_API_KEY" },
     },
     {
+      key: "music",
+      initials: "♪",
+      tile: "bg-pastel-pink",
+      name: "Music",
+      description: settings.music.elevenLabs
+        ? "ElevenLabs composes a track for each video; your library is the fallback."
+        : `Picked by mood from ${settings.music.bundledTracks} starter track${settings.music.bundledTracks === 1 ? "" : "s"} and ${settings.music.userTracks} of yours (MUSIC_DIR).`,
+      status: settings.music.elevenLabs
+        ? { tone: "success", label: "ElevenLabs" }
+        : settings.music.bundledTracks + settings.music.userTracks > 0
+          ? { tone: "success", label: `${settings.music.bundledTracks + settings.music.userTracks} track${settings.music.bundledTracks + settings.music.userTracks === 1 ? "" : "s"}` }
+          : { tone: "secondary", label: "No tracks" },
+    },
+    {
       key: "lightpost",
       initials: "LP",
       tile: "bg-pastel-green",
@@ -108,7 +130,7 @@ function connectionRows(settings: Settings): ConnectionRow[] {
     {
       key: "publer",
       initials: "P",
-      tile: "bg-pastel-pink",
+      tile: "bg-[#ffb3a6]",
       name: "Publer",
       description: "Hosted scheduler that posts to your social accounts.",
       status: publisherStatus("publer", settings.publerConfigured),
@@ -141,6 +163,7 @@ export default async function SettingsPage() {
     { name: "LIGHTPOST_URL", set: settings.lightpostConfigured },
     { name: "PUBLER_API_KEY", set: settings.publerConfigured },
     { name: "STORAGE_DRIVER", set: settings.storage === "s3", note: "local (default) or s3" },
+    { name: "ELEVENLABS_API_KEY", set: settings.music.elevenLabs, note: "optional: a fresh music track per video" },
     { name: "CREATIFY_API_KEY", set: settings.creatify, note: "optional" },
   ];
 

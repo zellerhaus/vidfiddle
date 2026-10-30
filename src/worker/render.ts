@@ -10,9 +10,10 @@ import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { videos } from "@/db/schema";
 import { generateMultipleCaptions, isClaudeConfigured } from "@/lib/claude";
-import { isLocalEngineOptions, toAspectRatio } from "@/lib/local-engine";
+import { isLocalEngineOptions, toAspectRatio, toMusicChoice, toPacing } from "@/lib/local-engine";
 import { publicUrl, saveFile } from "@/lib/storage";
 import type { Platform } from "@/lib/supabase/types";
+import { musicFromEnv } from "@/lib/video-engine/music";
 import { renderVideo } from "@/lib/video-engine/pipeline";
 import { openAIProviders } from "@/lib/video-engine/providers/openai";
 
@@ -53,6 +54,7 @@ async function renderOne(job: { id: string; script: string; style_options: unkno
   const workDir = resolve(process.env.DATA_DIR ?? "data", "renders", job.id);
   const outFile = join(workDir, "final.mp4");
   const started = Date.now();
+  const music = toMusicChoice(options?.music);
   console.log(`[render] ${job.id}: started`);
 
   const result = await renderVideo({
@@ -61,6 +63,11 @@ async function renderOne(job: { id: string; script: string; style_options: unkno
     outFile,
     aspect: toAspectRatio(options?.aspectRatio),
     style: options?.visualStyle || undefined,
+    pacing: toPacing(options?.pacing),
+    music:
+      music === "none"
+        ? undefined
+        : { provider: musicFromEnv(job.id), mood: music, volume: options?.musicVolume ?? 0.3 },
     providers: openAIProviders({
       apiKey: process.env.OPENAI_API_KEY!,
       voice: options?.voice,

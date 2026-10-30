@@ -23,6 +23,7 @@ import {
   LINK_TO_VIDEO_LENGTHS,
 } from "@/lib/creatify";
 import type { VideoDefaults, CreatifyApiMethod } from "@/lib/supabase/types";
+import { MUSIC_OPTIONS, PACING_OPTIONS } from "@/lib/local-engine";
 
 // Creatify style options (for ai_shorts)
 const CREATIFY_STYLES = [
@@ -318,6 +319,60 @@ export function VideoDefaultsForm() {
               placeholder="e.g. flat paper-cut illustration, warm colors"
             />
           </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="local-pacing">Pacing</Label>
+              <Select
+                value={defaults.pacing ?? "medium"}
+                onValueChange={(pacing) => setDefaults((prev) => ({ ...prev, pacing }))}
+              >
+                <SelectTrigger id="local-pacing" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PACING_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}: {option.description.toLowerCase()}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="local-music">Music</Label>
+              <Select
+                value={defaults.musicMood ?? "auto"}
+                onValueChange={(musicMood) => setDefaults((prev) => ({ ...prev, musicMood }))}
+              >
+                <SelectTrigger id="local-music" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MUSIC_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {defaults.musicMood !== "none" && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="local-music-volume">Music level</Label>
+                <span className="text-sm text-muted-foreground">{defaults.backgroundMusicVolume}%</span>
+              </div>
+              <Slider
+                id="local-music-volume"
+                value={[defaults.backgroundMusicVolume]}
+                onValueChange={([value]) => setDefaults((prev) => ({ ...prev, backgroundMusicVolume: value }))}
+                min={5}
+                max={100}
+                step={5}
+              />
+            </div>
+          )}
         </>
       )}
 

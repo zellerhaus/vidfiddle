@@ -18,6 +18,9 @@ Start the stack (`docker compose up -d`), sign in, then:
    process-queue jobs (or Test Run on Auto Mode Status) render a video into the Approval Queue.
    Approve it there.
 5. **Delete:** delete a video from History. Its file is removed from storage.
+6. **Pacing and music:** render the same script at Slow and Fast. Fast cuts to a new shot every
+   2–3 seconds. With tracks in `music/` (or the starter pack), music plays under the voice and dips
+   while it speaks; "No music" leaves only the voice.
 
 To use S3 storage, set `STORAGE_DRIVER=s3` and the `S3_*` variables, then repeat step 3. The video
 URL should point at `S3_PUBLIC_URL`, and the object should appear in the bucket.
@@ -46,6 +49,11 @@ Upstream LightPost can't post video yet. Until it can, run LightPost from a buil
 ### Anthropic for scripts
 Set `LLM_PROVIDER=anthropic` and `ANTHROPIC_API_KEY`, then restart. Settings names Anthropic, and
 the Script step writes scripts. Rendering still needs `OPENAI_API_KEY`.
+
+### ElevenLabs music
+Set `ELEVENLABS_API_KEY`, then restart. Settings shows Music as **ElevenLabs**. Each new render
+composes its own instrumental in the chosen mood. With an invalid key, renders still finish, using
+library tracks.
 
 ### Creatify engines (paid)
 Set `CREATIFY_API_ID` and `CREATIFY_API_KEY`. AI Shorts, Link to Video and AI Avatar become

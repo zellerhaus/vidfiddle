@@ -83,7 +83,9 @@ function getInitialState(
       avatarId: (opts.avatarId as string) || null,
       aspectRatio: (opts.aspectRatio as StyleOptions["aspectRatio"]) || "9x16",
       voiceoverVolume: (opts.voiceoverVolume as number) ?? 1.0,
-      backgroundMusicVolume: (opts.backgroundMusicVolume as number) ?? 0.3,
+      backgroundMusicVolume: (opts.musicVolume as number) ?? (opts.backgroundMusicVolume as number) ?? 0.3,
+      pacing: (opts.pacing as StyleOptions["pacing"]) || undefined,
+      musicMood: (opts.music as StyleOptions["musicMood"]) || undefined,
       voiceId:
         (opts.voice as string) ||
         (opts.accentId as string) ||

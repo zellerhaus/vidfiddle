@@ -22,6 +22,8 @@ const DEFAULT_VIDEO_SETTINGS: VideoDefaults = {
   targetDuration: 60,
   scriptStyle: "engaging",
   scriptTone: "professional",
+  pacing: "medium",
+  musicMood: "auto",
 };
 
 function getDefaultVideoSettings(): VideoDefaults {
@@ -146,6 +148,8 @@ export async function PUT(request: NextRequest) {
       targetDuration: body.targetDuration,
       scriptStyle: body.scriptStyle,
       scriptTone: body.scriptTone,
+      pacing: body.pacing ?? "medium",
+      musicMood: body.musicMood ?? "auto",
     };
 
     // Upsert the settings (insert if not exists, update if exists)

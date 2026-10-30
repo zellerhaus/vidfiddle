@@ -12,7 +12,7 @@ import {
   type CreatifyStyle,
   type CreatifyAspectRatio,
 } from "@/lib/creatify";
-import { isLocalEngineConfigured, toAspectRatio, toOpenAIVoice } from "@/lib/local-engine";
+import { buildLocalEngineOptions, isLocalEngineConfigured } from "@/lib/local-engine";
 import type { CreatifyApiMethod } from "@/lib/supabase/types";
 
 export async function POST(request: NextRequest) {
@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
       visualStyle,
       videoLength,
       avatarId,
+      pacing,
+      musicMood,
     } = body as {
       blogPostId: string;
       contentSegmentId?: string;
@@ -44,6 +46,8 @@ export async function POST(request: NextRequest) {
       visualStyle?: string;
       videoLength?: number;
       avatarId?: string;
+      pacing?: string;
+      musicMood?: string;
     };
 
     if (!blogPostId || !script) {
@@ -103,15 +107,14 @@ export async function POST(request: NextRequest) {
             content_segment_id: contentSegmentId || null,
             script,
             style: "stock_footage",
-            style_options: {
-              apiVersion: "local",
-              aspectRatio: toAspectRatio(aspectRatio),
-              voice: toOpenAIVoice(accentId),
-              visualStyle:
-                visualStyle && visualStyle !== "FullScreenTemplate"
-                  ? visualStyle
-                  : undefined,
-            },
+            style_options: buildLocalEngineOptions({
+              aspectRatio,
+              voice: accentId,
+              visualStyle,
+              pacing,
+              music: musicMood,
+              musicVolume: backgroundMusicVolume,
+            }),
             status: "pending",
             creatify_job_id: null,
           })

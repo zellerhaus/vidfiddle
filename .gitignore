@@ -47,3 +47,7 @@ next-env.d.ts
 
 # local storage and worker files
 /data/
+
+# Your own music tracks (music/README.md explains the layout)
+/music/*
+!/music/README.md

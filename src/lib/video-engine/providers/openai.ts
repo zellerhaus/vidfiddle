@@ -1,9 +1,11 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { basename } from "node:path";
+import { MOODS } from "../types";
 import type {
   AspectRatio,
   CostSink,
   EngineProviders,
+  Mood,
   ScenePlan,
   ScenePlanner,
   Transcriber,
@@ -91,7 +93,8 @@ class OpenAIPlanner implements ScenePlanner {
             "person, a celebrity, or a famous fictional character, and don't describe costumes that " +
             "imitate one; use generic figures instead. " +
             `Compose for a ${orientation} frame with the subject centered, because the frame ` +
-            "slowly zooms and the lower third is covered by captions. All scenes share one visual style: " +
+            "slowly zooms and the lower third is covered by captions. Also pick the background music " +
+            "mood that best fits the script. All scenes share one visual style: " +
             "write every prompt in that style's own terms (medium, texture, palette), and describe a " +
             "photograph or camera only when the style is photographic.",
         },
@@ -112,9 +115,10 @@ class OpenAIPlanner implements ScenePlanner {
           schema: {
             type: "object",
             additionalProperties: false,
-            required: ["style", "visuals"],
+            required: ["style", "mood", "visuals"],
             properties: {
               style: { type: "string" },
+              mood: { type: "string", enum: [...MOODS] },
               visuals: { type: "array", items: { type: "string" } },
             },
           },
@@ -137,13 +141,14 @@ class OpenAIPlanner implements ScenePlanner {
     const message = (raw.output ?? []).find((o: { type: string }) => o.type === "message");
     const text = message?.content?.find((c: { type: string }) => c.type === "output_text")?.text;
     if (!text) throw new Error("Scene planner returned no output");
-    const parsed = JSON.parse(text) as { style: string; visuals: string[] };
+    const parsed = JSON.parse(text) as { style: string; mood?: string; visuals: string[] };
 
     // The model occasionally returns one prompt too many or too few; pad with the last prompt
     // rather than fail the render.
     const visuals = narrations.map((_, i) => parsed.visuals[i] ?? parsed.visuals.at(-1) ?? narrations[i]);
     return {
       style: opts.style ?? parsed.style,
+      mood: (MOODS as readonly string[]).includes(parsed.mood ?? "") ? (parsed.mood as Mood) : undefined,
       scenes: narrations.map((narration, i) => ({ narration, visual: visuals[i] })),
     };
   }

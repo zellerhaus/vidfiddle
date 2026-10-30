@@ -3,6 +3,10 @@
  *
  *   npx tsx scripts/render-video.ts --script post.txt --out video.mp4 [--aspect 9x16]
  *     [--voice coral] [--style "flat paper-cut illustration"] [--work .renders/post] [--no-captions]
+ *     [--pacing slow|medium|fast] [--music auto|upbeat|calm|inspiring|dramatic|playful|none]
+ *     [--music-volume 0.3]
+ *
+ * Music comes from MUSIC_DIR / assets/music, or ElevenLabs when ELEVENLABS_API_KEY is set.
  *
  * Needs OPENAI_API_KEY and an ffmpeg with libass (FFMPEG_PATH / FFPROBE_PATH to override).
  * Re-running with the same --work directory reuses finished scenes, so tweaking the render
@@ -11,6 +15,8 @@
 import { readFile } from "node:fs/promises";
 import { basename, extname } from "node:path";
 import { parseArgs } from "node:util";
+import { toMusicChoice, toPacing } from "../src/lib/local-engine";
+import { musicFromEnv } from "../src/lib/video-engine/music";
 import { renderVideo } from "../src/lib/video-engine/pipeline";
 import { openAIProviders } from "../src/lib/video-engine/providers/openai";
 import type { AspectRatio } from "../src/lib/video-engine/types";
@@ -24,6 +30,9 @@ const { values } = parseArgs({
     style: { type: "string" },
     work: { type: "string" },
     "no-captions": { type: "boolean", default: false },
+    pacing: { type: "string", default: "medium" },
+    music: { type: "string", default: "auto" },
+    "music-volume": { type: "string", default: "0.3" },
   },
 });
 
@@ -51,6 +60,15 @@ async function main(scriptPath: string, openAIKey: string) {
     aspect: values.aspect as AspectRatio,
     style: values.style,
     captions: !values["no-captions"],
+    pacing: toPacing(values.pacing),
+    music:
+      toMusicChoice(values.music) === "none"
+        ? undefined
+        : {
+            provider: musicFromEnv(name),
+            mood: toMusicChoice(values.music) as Exclude<ReturnType<typeof toMusicChoice>, "none">,
+            volume: Number(values["music-volume"]),
+          },
     providers: openAIProviders({
       apiKey: openAIKey,
       voice: values.voice,

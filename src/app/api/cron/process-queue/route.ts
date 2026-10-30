@@ -22,7 +22,7 @@ import {
   mapToVisualStyle,
   type CreatifyStyle,
 } from "@/lib/creatify";
-import { isLocalEngineConfigured, toAspectRatio, toOpenAIVoice } from "@/lib/local-engine";
+import { buildLocalEngineOptions, isLocalEngineConfigured } from "@/lib/local-engine";
 import {
   startCronLog,
   completeCronLog,
@@ -460,15 +460,15 @@ async function processQueueItem(
       style: "stock_footage", // Our DB enum
       style_options: {
         ...(apiMethod === "local"
-          ? {
-              apiVersion: "local",
-              aspectRatio: toAspectRatio(defaults.aspectRatio),
-              voice: toOpenAIVoice(defaults.voiceId),
-              visualStyle:
-                defaults.visualStyle && defaults.visualStyle !== "FullScreenTemplate"
-                  ? defaults.visualStyle
-                  : undefined,
-            }
+          ? buildLocalEngineOptions({
+              aspectRatio: defaults.aspectRatio,
+              voice: defaults.voiceId,
+              visualStyle: defaults.visualStyle,
+              pacing: defaults.pacing,
+              music: defaults.musicMood,
+              // Settings store volumes as 0–100.
+              musicVolume: defaults.backgroundMusicVolume / 100,
+            })
           : {
               apiVersion: apiMethod,
               creatifyStyle,

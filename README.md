@@ -16,8 +16,14 @@ RSS / URL / YouTube → segments → script → video → review queue → capti
 - **Scripts and captions** come from OpenAI or Anthropic (`LLM_PROVIDER`).
 - **Videos** come from one of two engines:
   - **Local engine (OpenAI):** renders on your server. `gpt-4o-mini-tts` reads the script, `gpt-image`
-    draws a still for each scene, `whisper-1` times every word, and ffmpeg adds slow camera moves and
-    word-by-word captions. About **$0.06 for a 30-second video**, billed to your OpenAI account.
+    draws a still for each scene, `whisper-1` times every word, and ffmpeg cuts each still into shots
+    with camera moves, burns in word-by-word captions, and mixes music under the voice. About
+    **$0.06 for a 30-second video**, billed to your OpenAI account.
+    - **Pacing:** slow (a new picture about every 8 seconds), medium (a new shot about every 4) or
+      fast (every 2–3). Same cost at every pace.
+    - **Music:** matched to the script's mood, from the starter tracks in `assets/music` plus any
+      you drop into `music/` ([how](music/README.md)). Set `ELEVENLABS_API_KEY` to compose a fresh
+      track per video instead. Narration is leveled to -14 LUFS, the loudness social apps expect.
   - **[Creatify](https://creatify.ai):** hosted stock-footage and AI-avatar videos (paid, optional).
 - **Publishing** goes through [Publer](https://publer.com) (hosted, paid) or
   [LightPost](https://github.com/brainstormity/LightPost) (self-hosted, free).
@@ -66,6 +72,7 @@ most:
 | `STORAGE_DRIVER`, `S3_*`                 | Keep media on local disk (default) or in an S3-compatible bucket.       |
 | `PUBLER_*` or `PUBLISHER`, `LIGHTPOST_*` | Where scheduled posts go.                                               |
 | `CREATIFY_*`                             | The hosted Creatify engine, if you want it.                             |
+| `MUSIC_DIR`, `ELEVENLABS_API_KEY`        | Your own music folder, or ElevenLabs-composed music per video.          |
 | `CRON_<JOB>`                             | Change a job's schedule (5-field cron), or turn it `off`.               |
 
 ### Media must be reachable for publishing

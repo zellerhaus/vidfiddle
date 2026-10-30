@@ -9,3 +9,5 @@ data
 screenshots
 docs/Analytics
 *.pen
+# Your own music is mounted at runtime, not baked into the image
+/music
