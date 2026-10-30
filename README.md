@@ -19,6 +19,9 @@ RSS / URL / YouTube → segments → script → video → review queue → capti
     draws a still for each scene, `whisper-1` times every word, and ffmpeg cuts each still into shots
     with camera moves, burns in word-by-word captions, and mixes music under the voice. About
     **$0.06 for a 30-second video**, billed to your OpenAI account.
+    - **Visual style:** pick one of eight looks from the showcase (felt diorama, watercolor, 3D
+      clay, deep space, paper-cut collage, sci-fi paperback, flat vector, photoreal), describe your
+      own, or let the planner choose one that fits the post.
     - **Pacing:** slow (a new picture about every 8 seconds), medium (a new shot about every 4) or
       fast (every 2–3). Same cost at every pace.
     - **Voice:** any of OpenAI's voices, or any voice in your ElevenLabs account when

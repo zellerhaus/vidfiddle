@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -26,6 +25,7 @@ import {
 import { MUSIC_OPTIONS, PACING_OPTIONS, type MusicChoice, type VoiceProviderName } from "@/lib/local-engine";
 import type { Pacing } from "@/lib/video-engine/types";
 import { VoiceSelector } from "@/components/settings/voice-selector";
+import { StylePicker } from "@/components/convert/style-picker";
 import { AvatarSelector } from "@/components/settings/avatar-selector";
 import type { VideoDefaults, CreatifyApiMethod } from "@/lib/supabase/types";
 
@@ -373,13 +373,14 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
                   <p className="text-xs text-muted-foreground">Add ELEVENLABS_API_KEY to read scripts with ElevenLabs voices.</p>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="local-visual-style">Visual style</Label>
-                <Input
-                  id="local-visual-style"
+              <div>
+                <Label className="text-base font-medium">Visual style</Label>
+                <p className="text-sm text-muted-foreground mb-3">
+                  The look of every scene. Hover a preset to see its prompt.
+                </p>
+                <StylePicker
                   value={visualStyle === "FullScreenTemplate" ? "" : visualStyle}
-                  onChange={(event) => setVisualStyle(event.target.value)}
-                  placeholder="e.g. flat paper-cut illustration, warm colors"
+                  onChange={setVisualStyle}
                 />
               </div>
               <div>

@@ -4,7 +4,6 @@ import * as React from "react";
 import { toast } from "sonner";
 import { Loader2, Film, Link2, Server, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -24,6 +23,7 @@ import {
 } from "@/lib/creatify";
 import type { VideoDefaults, CreatifyApiMethod } from "@/lib/supabase/types";
 import { MUSIC_OPTIONS, PACING_OPTIONS } from "@/lib/local-engine";
+import { StylePicker } from "@/components/convert/style-picker";
 
 // Creatify style options (for ai_shorts)
 const CREATIFY_STYLES = [
@@ -326,17 +326,12 @@ export function VideoDefaultsForm() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="local-visual-style">Visual style</Label>
-            <Input
-              id="local-visual-style"
+            <Label>Visual style</Label>
+            <StylePicker
               value={defaults.visualStyle === "FullScreenTemplate" ? "" : defaults.visualStyle ?? ""}
-              onChange={(event) =>
-                setDefaults((prev) => ({
-                  ...prev,
-                  visualStyle: event.target.value || undefined,
-                }))
+              onChange={(visualStyle) =>
+                setDefaults((prev) => ({ ...prev, visualStyle: visualStyle || undefined }))
               }
-              placeholder="e.g. flat paper-cut illustration, warm colors"
             />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
