@@ -20,14 +20,14 @@ interface YouTubeSourceListProps {
 
 const statusConfig: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: typeof Loader2 }
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" | "info"; icon: typeof Loader2 }
 > = {
   pending: { label: "Queued", variant: "secondary", icon: Clock },
-  downloading: { label: "Downloading", variant: "default", icon: Loader2 },
-  transcribing: { label: "Transcribing", variant: "default", icon: Loader2 },
-  analyzing: { label: "Analyzing", variant: "default", icon: Loader2 },
-  processing: { label: "Processing", variant: "default", icon: Loader2 },
-  completed: { label: "Complete", variant: "outline", icon: CheckCircle2 },
+  downloading: { label: "Downloading", variant: "info", icon: Loader2 },
+  transcribing: { label: "Transcribing", variant: "info", icon: Loader2 },
+  analyzing: { label: "Analyzing", variant: "info", icon: Loader2 },
+  processing: { label: "Processing", variant: "info", icon: Loader2 },
+  completed: { label: "Complete", variant: "success", icon: CheckCircle2 },
   failed: { label: "Failed", variant: "destructive", icon: XCircle },
 };
 
@@ -76,8 +76,8 @@ export function YouTubeSourceList({ initialSources }: YouTubeSourceListProps) {
             <Link key={source.id} href={`/youtube/${source.id}`}>
               <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
                 <CardContent className="p-4 flex items-center gap-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10">
-                    <Youtube className="h-5 w-5 text-red-500" />
+                  <div className="flex h-10 w-10 items-center justify-center border-2 border-black bg-pastel-pink">
+                    <Youtube className="h-5 w-5" />
                   </div>
 
                   <div className="flex-1 min-w-0">

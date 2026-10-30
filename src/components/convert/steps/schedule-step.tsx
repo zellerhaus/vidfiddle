@@ -180,7 +180,7 @@ export function ScheduleStep({
 
               {scheduled && (
                 <div className="mt-4 space-y-2">
-                  <h4 className="font-medium text-green-600 flex items-center gap-2">
+                  <h4 className="font-bold flex items-center gap-2">
                     <CheckCircle className="h-4 w-4" />
                     Scheduled!
                   </h4>
@@ -217,8 +217,8 @@ export function ScheduleStep({
           )}
 
           {!loadingAccounts && !accountError && missingPlatforms.length > 0 && (
-            <div className="rounded-lg border border-yellow-500/50 bg-yellow-500/10 p-4">
-              <div className="flex items-center gap-2 text-yellow-600">
+            <div className="border-2 border-black bg-warning p-4">
+              <div className="flex items-center gap-2 font-semibold">
                 <AlertCircle className="h-4 w-4" />
                 <span className="font-medium">Missing accounts</span>
               </div>
@@ -244,7 +244,7 @@ export function ScheduleStep({
               <h4 className="font-medium mb-2">Auto-Scheduling</h4>
               <p className="text-sm text-muted-foreground mb-4">
                 Publer will automatically choose the optimal posting time for each
-                platform based on your audience's activity patterns.
+                platform based on your audience&apos;s activity patterns.
               </p>
               <Button
                 onClick={scheduleAll}
@@ -265,10 +265,10 @@ export function ScheduleStep({
               </Button>
             </div>
           ) : scheduled ? (
-            <div className="rounded-lg border border-green-500/20 bg-green-500/10 p-4">
+            <div className="border-2 border-black bg-success p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-medium text-green-600">All Done!</h4>
+                  <h4 className="font-bold">All Done!</h4>
                   <p className="text-sm text-muted-foreground">
                     Your posts have been added to the Publer queue.
                   </p>

@@ -168,8 +168,8 @@ export function YouTubeUrlForm({ captionPresets, pipeline = "legacy" }: YouTubeU
                       disabled={isLoading}
                       className={`p-4 rounded-lg border-2 text-left transition-colors ${
                         selectedStyle === preset.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
+                          ? "border-black bg-primary shadow-hard-sm"
+                          : "border-black bg-white hover:bg-accent"
                       }`}
                     >
                       <div className="font-medium text-sm">{preset.name}</div>

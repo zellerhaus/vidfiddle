@@ -1,5 +1,6 @@
 "use client";
 
+import { PLATFORM_COLORS } from "@/lib/platform-colors";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,15 +30,6 @@ const MONTHS = [
   "July", "August", "September", "October", "November", "December"
 ];
 
-// Platform color mapping
-const PLATFORM_COLORS: Record<Platform, string> = {
-  instagram: "bg-pink-500",
-  tiktok: "bg-black dark:bg-gray-800",
-  youtube: "bg-red-500",
-  linkedin: "bg-blue-600",
-  twitter: "bg-sky-500",
-  facebook: "bg-blue-500",
-};
 
 function getMonthDays(year: number, month: number) {
   const firstDay = new Date(year, month, 1);
@@ -218,7 +210,7 @@ export function CalendarGrid({ events, view, onShowMoreClick }: CalendarGridProp
         {(Object.keys(PLATFORM_COLORS) as Platform[]).map((platform) => (
           <Badge
             key={platform}
-            className={cn("text-white text-xs", PLATFORM_COLORS[platform])}
+            className={PLATFORM_COLORS[platform]}
           >
             {platform}
           </Badge>

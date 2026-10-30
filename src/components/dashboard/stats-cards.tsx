@@ -23,7 +23,7 @@ export function StatsCards({
       value: pendingContent,
       description: "Blog posts ready to convert",
       icon: FileText,
-      color: "text-blue-500",
+      color: "bg-pastel-pink",
       href: "/content",
     },
     {
@@ -31,7 +31,7 @@ export function StatsCards({
       value: videosInProgress,
       description: "Videos being generated",
       icon: Loader2,
-      color: "text-yellow-500",
+      color: "bg-pastel-blue",
       href: "/history",
     },
     {
@@ -39,7 +39,7 @@ export function StatsCards({
       value: scheduledPosts,
       description: "Posts queued for publishing",
       icon: Calendar,
-      color: "text-green-500",
+      color: "bg-pastel-green",
       href: "/calendar",
     },
     {
@@ -47,7 +47,7 @@ export function StatsCards({
       value: totalVideos,
       description: "Videos created all time",
       icon: Video,
-      color: "text-purple-500",
+      color: "bg-pastel-yellow",
       href: "/history",
     },
   ];
@@ -57,14 +57,14 @@ export function StatsCards({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {stats.map((stat) => (
           <Link key={stat.title} href={stat.href}>
-            <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <stat.icon className={`h-4 w-4 ${stat.color}`} />
+            <Card className={`${stat.color} gap-3 py-5 cursor-pointer transition-transform hover:-translate-x-0.5 hover:-translate-y-0.5`}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-0">
+                <CardTitle className="label-chrome text-xs font-semibold">{stat.title}</CardTitle>
+                <stat.icon className="h-4 w-4" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">{stat.description}</p>
+                <div className="display text-5xl">{stat.value}</div>
+                <p className="mt-2 text-xs font-semibold">{stat.description}</p>
               </CardContent>
             </Card>
           </Link>
@@ -74,15 +74,15 @@ export function StatsCards({
       {/* Auto Queue Status */}
       {autoQueuePending > 0 && (
         <Link href="/settings/auto-mode">
-          <Card className="border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10 transition-colors cursor-pointer">
+          <Card className="bg-pastel-cream cursor-pointer transition-transform hover:-translate-y-0.5">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Zap className="h-4 w-4 text-yellow-500" />
+                <Zap className="h-4 w-4" />
                 Auto Queue
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{autoQueuePending}</div>
+              <div className="display text-4xl">{autoQueuePending}</div>
               <p className="text-xs text-muted-foreground">
                 Videos pending auto-generation
               </p>

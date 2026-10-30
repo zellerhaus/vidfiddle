@@ -97,8 +97,8 @@ export function FeedList({ feeds }: FeedListProps) {
         {feeds.map((feed) => (
           <Card key={feed.id}>
             <CardContent className="flex items-center gap-4 p-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                <Rss className="h-5 w-5 text-primary" />
+              <div className="flex h-10 w-10 items-center justify-center border-2 border-black bg-pastel-cream">
+                <Rss className="h-5 w-5" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">
@@ -112,7 +112,7 @@ export function FeedList({ feeds }: FeedListProps) {
                 {feed.auto_mode_enabled ? (
                   <Badge
                     variant="default"
-                    className="hidden sm:flex bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 border-yellow-500/30"
+                    className="hidden sm:flex bg-pastel-yellow"
                     title={`${feed.auto_videos_per_post} video(s) per post`}
                   >
                     <Zap className="h-3 w-3 mr-1" />

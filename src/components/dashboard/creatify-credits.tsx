@@ -23,23 +23,23 @@ export function CreatifyCredits() {
 
   const color =
     credits! > 100
-      ? "text-green-500"
+      ? "text-foreground"
       : credits! > 10
-        ? "text-yellow-500"
-        : "text-red-500";
+        ? "text-foreground"
+        : "text-foreground";
 
   const borderColor =
     credits! > 100
       ? "border-border"
       : credits! > 10
-        ? "border-yellow-500/30"
-        : "border-red-500/30";
+        ? ""
+        : "";
 
   const bgColor =
     credits! <= 10
-      ? "bg-red-500/5"
+      ? "bg-destructive"
       : credits! <= 100
-        ? "bg-yellow-500/5"
+        ? "bg-warning"
         : "bg-card";
 
   return (

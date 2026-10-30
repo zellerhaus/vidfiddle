@@ -96,11 +96,11 @@ export function VideoReviewCard({
 
               {/* Previous Feedback (if regenerated) */}
               {video.regeneration_feedback && (
-                <div className="mt-3 p-2 bg-yellow-50 dark:bg-yellow-950/20 rounded text-xs">
-                  <span className="font-medium text-yellow-700 dark:text-yellow-500">
+                <div className="mt-3 border-2 border-black bg-warning p-2 text-xs">
+                  <span className="font-bold">
                     Previous feedback:
                   </span>{" "}
-                  <span className="text-yellow-600 dark:text-yellow-400">
+                  <span>
                     {video.regeneration_feedback}
                   </span>
                 </div>
@@ -111,7 +111,7 @@ export function VideoReviewCard({
             <div className="flex flex-col gap-2 flex-shrink-0">
               <Button
                 size="sm"
-                className="bg-green-600 hover:bg-green-700"
+                variant="success"
                 onClick={() => onApprove(video.id)}
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
@@ -120,7 +120,7 @@ export function VideoReviewCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="text-destructive hover:text-destructive"
+                className="hover:bg-destructive"
                 onClick={() => onReject(video.id)}
               >
                 <XCircle className="h-4 w-4 mr-1" />

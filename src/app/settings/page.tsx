@@ -6,14 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ExternalLink, CheckCircle, XCircle, ChevronRight, Sparkles, Zap } from "lucide-react";
-import { getAccounts, isPublerConfigured, type PublerAccount } from "@/lib/publishers/publer";
+import { getPublisher, type PublisherAccount } from "@/lib/publishers";
 import { isLLMConfigured, llmProviderName } from "@/lib/llm";
+import { isLocalEngineConfigured } from "@/lib/local-engine";
+import { getStorageDriver } from "@/lib/storage";
+import { PLATFORM_COLORS } from "@/lib/platform-colors";
+import type { Platform } from "@/lib/supabase/types";
 import { VideoDefaultsForm } from "@/components/settings";
 
 async function getSettings() {
   // Check environment variables
   const llmProvider = llmProviderName();
-  const llmConnected = isLLMConfigured();
   const llmProviderLabel = llmProvider === "openai"
     ? "OpenAI"
     : llmProvider === "anthropic"
@@ -24,47 +27,122 @@ async function getSettings() {
     : llmProvider === "anthropic"
       ? "ANTHROPIC_API_KEY"
       : "ANTHROPIC_API_KEY or OPENAI_API_KEY";
-  const creatifyConnected = !!process.env.CREATIFY_API_ID && !!process.env.CREATIFY_API_KEY;
-  const publerConfigured = isPublerConfigured();
 
-  // Fetch Publer accounts if configured
-  let publerAccounts: PublerAccount[] = [];
-  if (publerConfigured) {
+  // The active publisher's accounts (LightPost or Publer, whichever getPublisher picks)
+  const publisher = getPublisher();
+  let accounts: PublisherAccount[] = [];
+  let accountsError = false;
+  if (publisher) {
     try {
-      publerAccounts = await getAccounts();
+      accounts = await publisher.getAccounts();
     } catch (error) {
-      console.error("Failed to fetch Publer accounts:", error);
+      accountsError = true;
+      console.error(`Failed to fetch ${publisher.name} accounts:`, error);
     }
   }
 
   return {
     llm: {
-      connected: llmConnected,
+      connected: isLLMConfigured(),
       provider: llmProvider,
       providerLabel: llmProviderLabel,
       configEnvVar: llmConfigEnvVar,
     },
-    creatify: { connected: creatifyConnected },
-    publer: {
-      connected: publerConfigured && publerAccounts.length > 0,
-      configured: publerConfigured,
-      accounts: publerAccounts,
-    },
+    localEngine: isLocalEngineConfigured(),
+    creatify: !!process.env.CREATIFY_API_ID && !!process.env.CREATIFY_API_KEY,
+    lightpostConfigured: !!process.env.LIGHTPOST_URL,
+    publerConfigured: !!process.env.PUBLER_API_KEY && !!process.env.PUBLER_WORKSPACE_ID,
+    activePublisher: publisher?.name ?? null,
+    accounts,
+    accountsError,
+    storage: getStorageDriver(),
   };
 }
 
-// Platform icons/colors
-const platformColors: Record<string, string> = {
-  instagram: "bg-pink-500",
-  tiktok: "bg-black",
-  youtube: "bg-red-500",
-  linkedin: "bg-blue-600",
-  twitter: "bg-sky-500",
-  facebook: "bg-blue-500",
-};
+type Settings = Awaited<ReturnType<typeof getSettings>>;
+
+interface ConnectionRow {
+  key: string;
+  initials: string;
+  tile: string;
+  name: string;
+  description: string;
+  status: { tone: "success" | "info" | "secondary"; label: string };
+}
+
+function connectionRows(settings: Settings): ConnectionRow[] {
+  const publisherStatus = (name: "lightpost" | "publer", configured: boolean): ConnectionRow["status"] => {
+    if (settings.activePublisher === name) {
+      if (settings.accountsError) return { tone: "secondary", label: "Can't reach it" };
+      const n = settings.accounts.length;
+      return { tone: "success", label: `Active · ${n} account${n === 1 ? "" : "s"}` };
+    }
+    return configured ? { tone: "info", label: "Configured" } : { tone: "secondary", label: "Not configured" };
+  };
+
+  return [
+    {
+      key: "llm",
+      initials: settings.llm.provider === "anthropic" ? "A" : "AI",
+      tile: "bg-pastel-blue",
+      name: `${settings.llm.providerLabel} text model`,
+      description: `Writes scripts and captions. Set ${settings.llm.configEnvVar}.`,
+      status: settings.llm.connected ? { tone: "success", label: "Connected" } : { tone: "secondary", label: "Not configured" },
+    },
+    {
+      key: "local",
+      initials: "VF",
+      tile: "bg-pastel-yellow",
+      name: "Local engine",
+      description: "Renders videos on your server with OpenAI voice, images and captions.",
+      status: settings.localEngine ? { tone: "success", label: "Ready" } : { tone: "secondary", label: "Needs OPENAI_API_KEY" },
+    },
+    {
+      key: "lightpost",
+      initials: "LP",
+      tile: "bg-pastel-green",
+      name: "LightPost",
+      description: "Self-hosted scheduler that posts to your social accounts.",
+      status: publisherStatus("lightpost", settings.lightpostConfigured),
+    },
+    {
+      key: "publer",
+      initials: "P",
+      tile: "bg-pastel-pink",
+      name: "Publer",
+      description: "Hosted scheduler that posts to your social accounts.",
+      status: publisherStatus("publer", settings.publerConfigured),
+    },
+    {
+      key: "creatify",
+      initials: "Cr",
+      tile: "bg-pastel-cream",
+      name: "Creatify (optional)",
+      description: "Paid engine for AI Shorts, Link to Video and AI Avatar videos.",
+      status: settings.creatify ? { tone: "success", label: "Connected" } : { tone: "secondary", label: "Not configured" },
+    },
+    {
+      key: "storage",
+      initials: settings.storage === "s3" ? "S3" : "HD",
+      tile: "bg-white",
+      name: "Media storage",
+      description: settings.storage === "s3" ? "S3-compatible bucket (STORAGE_DRIVER=s3)." : "Local disk under DATA_DIR.",
+      status: { tone: "info", label: settings.storage === "s3" ? "S3" : "Local disk" },
+    },
+  ];
+}
 
 export default async function SettingsPage() {
   const settings = await getSettings();
+  const rows = connectionRows(settings);
+  const envLines: { name: string; set: boolean; note?: string }[] = [
+    { name: settings.llm.configEnvVar, set: settings.llm.connected },
+    { name: "PUBLISHER", set: !!settings.activePublisher, note: "lightpost or publer" },
+    { name: "LIGHTPOST_URL", set: settings.lightpostConfigured },
+    { name: "PUBLER_API_KEY", set: settings.publerConfigured },
+    { name: "STORAGE_DRIVER", set: settings.storage === "s3", note: "local (default) or s3" },
+    { name: "CREATIFY_API_KEY", set: settings.creatify, note: "optional" },
+  ];
 
   return (
     <AppLayout>
@@ -73,150 +151,58 @@ export default async function SettingsPage() {
         <div className="max-w-2xl space-y-8">
           <Card>
             <CardHeader>
-              <CardTitle>API Connections</CardTitle>
+              <CardTitle>Connections</CardTitle>
               <CardDescription>
-                Connect your external services to enable video generation and social posting.
+                Everything is configured with environment variables; this page shows what Vidfiddle found.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Text LLM */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10">
-                    <span className="text-lg font-semibold text-purple-500">
-                      {settings.llm.provider === "openai"
-                        ? "O"
-                        : settings.llm.provider === "anthropic"
-                          ? "A"
-                          : "T"}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="font-medium">{settings.llm.providerLabel} Text Model</p>
-                    <p className="text-sm text-muted-foreground">
-                      Active provider via {settings.llm.configEnvVar}
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  variant={settings.llm.connected ? "default" : "secondary"}
-                  className="gap-1"
-                >
-                  {settings.llm.connected ? (
-                    <>
-                      <CheckCircle className="h-3 w-3" />
-                      Connected
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-3 w-3" />
-                      Not configured
-                    </>
-                  )}
-                </Badge>
-              </div>
-
-              <Separator />
-
-              {/* Creatify */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10">
-                    <span className="text-lg font-semibold text-blue-500">Cr</span>
-                  </div>
-                  <div>
-                    <p className="font-medium">Creatify API</p>
-                    <p className="text-sm text-muted-foreground">
-                      Generates short-form videos
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  variant={settings.creatify.connected ? "default" : "secondary"}
-                  className="gap-1"
-                >
-                  {settings.creatify.connected ? (
-                    <>
-                      <CheckCircle className="h-3 w-3" />
-                      Connected
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="h-3 w-3" />
-                      Not configured
-                    </>
-                  )}
-                </Badge>
-              </div>
-
-              <Separator />
-
-              {/* Publer */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/10">
-                      <span className="text-lg font-semibold text-green-500">P</span>
-                    </div>
-                    <div>
-                      <p className="font-medium">Publer</p>
-                      <p className="text-sm text-muted-foreground">
-                        Schedules posts to social media
-                      </p>
-                    </div>
-                  </div>
-                  <Badge
-                    variant={settings.publer.connected ? "default" : "secondary"}
-                    className="gap-1"
-                  >
-                    {settings.publer.connected ? (
-                      <>
-                        <CheckCircle className="h-3 w-3" />
-                        {settings.publer.accounts.length} account{settings.publer.accounts.length !== 1 ? "s" : ""}
-                      </>
-                    ) : settings.publer.configured ? (
-                      <>
-                        <XCircle className="h-3 w-3" />
-                        No accounts found
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="h-3 w-3" />
-                        Not configured
-                      </>
-                    )}
-                  </Badge>
-                </div>
-
-                {/* Show connected Publer accounts */}
-                {settings.publer.accounts.length > 0 && (
-                  <div className="ml-13 pl-[52px] space-y-2">
-                    {settings.publer.accounts.map((account) => (
-                      <div
-                        key={account.id}
-                        className="flex items-center gap-3 rounded-lg bg-muted/50 p-2"
-                      >
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={account.avatar_url} />
-                          <AvatarFallback
-                            className={`${platformColors[account.platform || ""] || "bg-gray-500"} text-white text-xs`}
-                          >
-                            {(account.platform || "??").slice(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {account.name || account.username}
-                          </p>
-                          <p className="text-xs text-muted-foreground capitalize">
-                            {account.platform || "Unknown"}
-                          </p>
-                        </div>
+              {rows.map((row, i) => (
+                <div key={row.key} className="space-y-4">
+                  {i > 0 && <Separator />}
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center border-2 border-black ${row.tile}`}>
+                        <span className="label-chrome text-xs font-bold">{row.initials}</span>
                       </div>
-                    ))}
+                      <div className="min-w-0">
+                        <p className="font-bold">{row.name}</p>
+                        <p className="text-sm text-muted-foreground">{row.description}</p>
+                      </div>
+                    </div>
+                    <Badge variant={row.status.tone} className="gap-1">
+                      {row.status.tone === "success" ? <CheckCircle className="h-3 w-3" /> : row.status.tone === "secondary" ? <XCircle className="h-3 w-3" /> : null}
+                      {row.status.label}
+                    </Badge>
                   </div>
-                )}
-              </div>
+
+                  {/* Accounts on the active publisher */}
+                  {(row.key === settings.activePublisher) && settings.accounts.length > 0 && (
+                    <div className="space-y-2 pl-[52px]">
+                      {settings.accounts.map((account) => (
+                        <div key={account.id} className="flex items-center gap-3 border-2 border-black bg-white p-2">
+                          <Avatar className="h-8 w-8">
+                            <AvatarImage src={account.avatar_url} />
+                            <AvatarFallback
+                              className={`${PLATFORM_COLORS[account.platform as Platform] ?? "bg-muted text-black"} text-xs`}
+                            >
+                              {(account.platform || "??").slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold truncate">
+                              {account.name || account.username}
+                            </p>
+                            <p className="text-xs text-muted-foreground capitalize">
+                              {account.platform || "Unknown"}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
             </CardContent>
           </Card>
 
@@ -228,38 +214,38 @@ export default async function SettingsPage() {
             <CardContent className="space-y-2">
               <Link
                 href="/settings/brand"
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
+                className="flex items-center justify-between border-2 border-transparent p-3 transition-colors hover:border-black hover:bg-white"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-500/10">
-                    <Sparkles className="h-5 w-5 text-pink-500" />
+                  <div className="flex h-10 w-10 items-center justify-center border-2 border-black bg-pastel-pink">
+                    <Sparkles className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="font-medium">Brand Voice Guidelines</p>
+                    <p className="font-bold">Brand Voice Guidelines</p>
                     <p className="text-sm text-muted-foreground">
                       Customize script generation with your brand voice
                     </p>
                   </div>
                 </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                <ChevronRight className="h-5 w-5" />
               </Link>
 
               <Link
                 href="/settings/auto-mode"
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
+                className="flex items-center justify-between border-2 border-transparent p-3 transition-colors hover:border-black hover:bg-white"
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-yellow-500/10">
-                    <Zap className="h-5 w-5 text-yellow-500" />
+                  <div className="flex h-10 w-10 items-center justify-center border-2 border-black bg-pastel-yellow">
+                    <Zap className="h-5 w-5" />
                   </div>
                   <div>
-                    <p className="font-medium">Auto Mode Status</p>
+                    <p className="font-bold">Auto Mode Status</p>
                     <p className="text-sm text-muted-foreground">
                       Monitor automatic video generation and cron jobs
                     </p>
                   </div>
                 </div>
-                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                <ChevronRight className="h-5 w-5" />
               </Link>
             </CardContent>
           </Card>
@@ -268,76 +254,47 @@ export default async function SettingsPage() {
             <CardHeader>
               <CardTitle>Environment Setup</CardTitle>
               <CardDescription>
-                Add your API keys to the environment variables to enable integrations.
+                Set these in your <code className="font-mono">.env</code> file, then restart the app (<code className="font-mono">docker compose up -d</code>).
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-lg bg-muted p-4 font-mono text-sm space-y-1">
-                <p className="text-muted-foreground"># .env.local</p>
-                <p className={settings.llm.connected ? "text-green-500" : ""}>
-                  {settings.llm.configEnvVar}={settings.llm.connected ? "✓ configured" : "..."}
-                </p>
-                <p className={settings.creatify.connected ? "text-green-500" : ""}>
-                  CREATIFY_API_ID={settings.creatify.connected ? "✓ configured" : "..."}
-                </p>
-                <p className={settings.creatify.connected ? "text-green-500" : ""}>
-                  CREATIFY_API_KEY={settings.creatify.connected ? "✓ configured" : "..."}
-                </p>
-                <p className={settings.publer.configured ? "text-green-500" : ""}>
-                  PUBLER_API_KEY={settings.publer.configured ? "✓ configured" : "..."}
-                </p>
-                <p className={settings.publer.configured ? "text-green-500" : ""}>
-                  PUBLER_WORKSPACE_ID={settings.publer.configured ? "✓ configured" : "..."}
-                </p>
+              <div className="border-2 border-black bg-black p-4 font-mono text-sm text-white space-y-1">
+                <p className="text-white/60"># .env</p>
+                {envLines.map((line) => (
+                  <p key={line.name} className={line.set ? "text-pastel-green" : ""}>
+                    {line.name}={line.set ? "✓ set" : "…"}
+                    {line.note && <span className="text-white/50">{`  # ${line.note}`}</span>}
+                  </p>
+                ))}
               </div>
               <p className="mt-4 text-sm text-muted-foreground">
-                Get your API keys from the respective service dashboards:
+                Every variable is documented in <code className="font-mono">.env.example</code>. Get keys here:
               </p>
               <div className="mt-2 flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" asChild>
-                  <a
-                    href="https://console.anthropic.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Anthropic Console
+                  <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer">
+                    OpenAI keys
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <a
-                    href="https://creatify.ai/api"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Creatify
+                  <a href="https://github.com/brainstormity/LightPost" target="_blank" rel="noopener noreferrer">
+                    LightPost
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <a
-                    href="https://publer.com/docs"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
+                  <a href="https://publer.com/docs" target="_blank" rel="noopener noreferrer">
                     Publer API
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
                 </Button>
-              </div>
-
-              <Separator className="my-4" />
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Publer Setup Instructions:</p>
-                <ol className="text-sm text-muted-foreground list-decimal list-inside space-y-1">
-                  <li>Go to Publer Settings → Access & Login → API Keys</li>
-                  <li>Create a new API key with scopes: workspaces, accounts, posts</li>
-                  <li>Copy the API key to PUBLER_API_KEY</li>
-                  <li>Get your workspace ID from the Publer URL or API</li>
-                  <li>Add PUBLER_WORKSPACE_ID to your .env.local</li>
-                  <li>Restart the dev server to apply changes</li>
-                </ol>
+                <Button variant="outline" size="sm" asChild>
+                  <a href="https://creatify.ai/api" target="_blank" rel="noopener noreferrer">
+                    Creatify
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                </Button>
               </div>
             </CardContent>
           </Card>

@@ -190,7 +190,7 @@ export function ConversionWizard({ post, existingVideo, segment }: ConversionWiz
                 disabled={!isAccessible}
                 className={cn(
                   "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-left",
-                  isActive && "bg-primary/10 text-primary",
+                  isActive && "border-2 border-black bg-primary font-bold text-black",
                   isCompleted && !isActive && "text-foreground",
                   !isActive && !isCompleted && "text-muted-foreground",
                   isAccessible && !isActive && "hover:bg-muted",
@@ -200,8 +200,8 @@ export function ConversionWizard({ post, existingVideo, segment }: ConversionWiz
                 <span
                   className={cn(
                     "flex h-6 w-6 items-center justify-center rounded-full text-xs",
-                    isActive && "bg-primary text-primary-foreground",
-                    isCompleted && !isActive && "bg-green-500 text-white",
+                    isActive && "bg-black text-white",
+                    isCompleted && !isActive && "border border-black bg-success text-black",
                     !isActive && !isCompleted && "bg-muted"
                   )}
                 >

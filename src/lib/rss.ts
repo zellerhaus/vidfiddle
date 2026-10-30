@@ -142,6 +142,15 @@ export function htmlToText(html: string): string {
   return strip(decodeEntities(strip(html))).replace(/\s+/g, " ").trim();
 }
 
+/** Drop the title when a feed repeats it at the start of the description. */
+export function withoutLeadingTitle(text: string, title: string): string {
+  const t = title.trim();
+  if (t && text.toLowerCase().startsWith(t.toLowerCase())) {
+    return text.slice(t.length).replace(/^[\s:–—|-]+/, "");
+  }
+  return text;
+}
+
 export function feedItemToBlogPost(
   item: FeedItem,
   feedId: string
@@ -149,13 +158,14 @@ export function feedItemToBlogPost(
   // Feeds send HTML (sometimes escaped inside the description), so store plain text everywhere.
   const cleanContent = htmlToText(item.content || "");
   const cleanSnippet = htmlToText(item.contentSnippet || "");
+  const title = decodeEntities(item.title);
 
   return {
     feed_id: feedId,
     url: item.link,
-    title: decodeEntities(item.title),
+    title,
     content: cleanContent || cleanSnippet,
-    excerpt: (cleanSnippet || cleanContent).slice(0, 300) || undefined,
+    excerpt: withoutLeadingTitle(cleanSnippet || cleanContent, title).slice(0, 300) || undefined,
     published_at: item.pubDate ? new Date(item.pubDate).toISOString() : null,
     status: "new",
   };

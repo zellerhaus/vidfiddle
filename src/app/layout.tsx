@@ -1,12 +1,17 @@
 import type { Metadata } from "next";
-import { Sora, IBM_Plex_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-const sora = Sora({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-sora",
+  variable: "--font-inter",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
@@ -19,8 +24,8 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Video Generator",
-  description: "Convert blog posts to short-form videos",
+  title: "Vidfiddle",
+  description: "Your blog already wrote your next 100 videos. Self-hosted RSS-to-video.",
 };
 
 export default function RootLayout({
@@ -30,11 +35,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sora.variable} ${ibmPlexMono.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable} ${ibmPlexMono.variable} font-sans antialiased`}>
         <TooltipProvider>
           {children}
         </TooltipProvider>
-        <Toaster richColors position="bottom-right" />
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );

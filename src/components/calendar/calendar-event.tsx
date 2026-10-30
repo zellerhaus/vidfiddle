@@ -1,5 +1,6 @@
 "use client";
 
+import { PLATFORM_COLORS } from "@/lib/platform-colors";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,15 +18,6 @@ interface CalendarEventProps {
   className?: string;
 }
 
-// Platform color mapping
-const PLATFORM_COLORS: Record<Platform, string> = {
-  instagram: "bg-pink-500",
-  tiktok: "bg-black dark:bg-gray-800",
-  youtube: "bg-red-500",
-  linkedin: "bg-blue-600",
-  twitter: "bg-sky-500",
-  facebook: "bg-blue-500",
-};
 
 function formatEventTime(date: Date) {
   return date.toLocaleTimeString("en-US", {
@@ -56,7 +48,7 @@ export function CalendarEventComponent({ event, className }: CalendarEventProps)
       <PopoverTrigger asChild>
         <button
           className={cn(
-            "w-full text-left px-1.5 py-0.5 rounded text-xs text-white truncate hover:opacity-80 transition-opacity",
+            "w-full text-left px-1.5 py-0.5 border border-black text-xs font-semibold truncate hover:opacity-80 transition-opacity",
             PLATFORM_COLORS[event.platform],
             event.status === "posted" && "opacity-75",
             className
@@ -80,7 +72,7 @@ export function CalendarEventComponent({ event, className }: CalendarEventProps)
 
           {/* Platform and Status badges */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge className={cn("text-white text-xs", PLATFORM_COLORS[event.platform])}>
+            <Badge className={PLATFORM_COLORS[event.platform]}>
               {event.platform}
             </Badge>
             <Badge variant={event.status === "posted" ? "default" : "outline"} className="text-xs">

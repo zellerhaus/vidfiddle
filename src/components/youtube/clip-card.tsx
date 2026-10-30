@@ -17,16 +17,16 @@ function formatTime(seconds: number): string {
 
 const statusConfig: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: typeof Loader2 }
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" | "info"; icon: typeof Loader2 }
 > = {
   pending: { label: "Pending", variant: "secondary", icon: Loader2 },
-  cutting: { label: "Cutting", variant: "default", icon: Scissors },
+  cutting: { label: "Cutting", variant: "info", icon: Scissors },
   rendering_captions: {
     label: "Adding Captions",
-    variant: "default",
+    variant: "info",
     icon: Sparkles,
   },
-  completed: { label: "Ready", variant: "outline", icon: CheckCircle2 },
+  completed: { label: "Ready", variant: "success", icon: CheckCircle2 },
   failed: { label: "Failed", variant: "destructive", icon: XCircle },
 };
 
@@ -80,7 +80,7 @@ export function ClipCard({ clip }: ClipCardProps) {
 
             {clip.viral_score !== null && (
               <div className="flex items-center gap-1 mt-2">
-                <Sparkles className="h-3 w-3 text-yellow-500" />
+                <Sparkles className="h-3 w-3" />
                 <span className="text-xs font-medium">
                   {Math.round(clip.viral_score * 100)}% viral score
                 </span>

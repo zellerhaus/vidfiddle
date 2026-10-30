@@ -183,7 +183,7 @@ export function AddFeedDialog() {
                 >
                   Enable Auto Mode
                 </Label>
-                <Zap className="h-4 w-4 text-yellow-500" />
+                <Zap className="h-4 w-4" />
               </div>
             </div>
             <p className="text-xs text-muted-foreground -mt-4 ml-7">
@@ -192,7 +192,7 @@ export function AddFeedDialog() {
 
             {/* Auto Mode Settings */}
             {autoModeEnabled && (
-              <div className="space-y-4 pl-7 border-l-2 border-yellow-500/30">
+              <div className="space-y-4 pl-7 border-l-[3px] border-pastel-yellow">
                 {/* Videos per Post */}
                 <div>
                   <Label className="text-sm">

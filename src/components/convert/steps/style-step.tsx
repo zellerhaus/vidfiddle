@@ -52,13 +52,14 @@ const API_METHODS: { value: CreatifyApiMethod; label: string; description: strin
   {
     value: "local",
     label: "Local engine (OpenAI)",
-    description: "Renders on your server with OpenAI voice, images and captions. Needs OPENAI_API_KEY. About $0.05 per 30-second video.",
+    description: "Renders on your server with OpenAI voice, images and captions. Needs OPENAI_API_KEY. About $0.06 per 30-second video.",
     icon: Server,
   },
 ];
 
 type VideoDefaultsResponse = VideoDefaults & {
   capabilities?: {
+    creatifyConfigured?: boolean;
     preferredApiMethod?: CreatifyApiMethod;
   };
 };
@@ -74,6 +75,8 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
   const [backgroundMusicVolume, setBackgroundMusicVolume] = useState(0.3);
   const [voiceId, setVoiceId] = useState<string | null>(null);
   const [isLoadingDefaults, setIsLoadingDefaults] = useState(true);
+  // Unknown until defaults load; the AI Shorts, Link to Video and Avatar methods need a Creatify key.
+  const [creatifyConfigured, setCreatifyConfigured] = useState<boolean | null>(null);
 
   // Fetch video defaults on mount
   useEffect(() => {
@@ -82,6 +85,7 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
         const response = await fetch("/api/settings/defaults");
         if (response.ok) {
           const defaults: VideoDefaultsResponse = await response.json();
+          setCreatifyConfigured(defaults.capabilities?.creatifyConfigured ?? null);
           // API method
           if (defaults.apiMethod) {
             setApiMethod(defaults.apiMethod);
@@ -165,7 +169,7 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
           <CardDescription>
             Select the generation method, visual style, and format for your video.
             {isLocal
-              ? " Estimated cost: about $0.05 per 30-second video."
+              ? " Estimated cost: about $0.06 per 30-second video."
               : ` Estimated cost: ~${estimatedCredits} credits (${estimatedSeconds}s video)`}
           </CardDescription>
         </CardHeader>
@@ -179,9 +183,12 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
               {API_METHODS.map((method) => {
                 const Icon = method.icon;
+                const unavailable = method.value !== "local" && creatifyConfigured === false;
                 return (
                   <button
                     key={method.value}
+                    disabled={unavailable}
+                    title={unavailable ? "Add CREATIFY_API_ID and CREATIFY_API_KEY to use this method" : undefined}
                     onClick={() => {
                       setApiMethod(method.value);
                       if (method.value === "local" && visualStyle === "FullScreenTemplate") {
@@ -189,10 +196,10 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
                       }
                     }}
                     className={cn(
-                      "flex flex-col items-start gap-2 rounded-lg border-2 p-4 text-left transition-all",
+                      "flex flex-col items-start gap-2 border-2 p-4 text-left transition-all disabled:cursor-not-allowed disabled:border-dashed disabled:bg-muted disabled:opacity-60 disabled:shadow-none",
                       apiMethod === method.value
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
+                        ? "border-black bg-primary shadow-hard-sm"
+                        : "border-black bg-white hover:bg-accent"
                     )}
                   >
                     <Icon className="h-5 w-5" />
@@ -201,6 +208,9 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
                       <p className="text-xs text-muted-foreground">
                         {method.description}
                       </p>
+                      {unavailable && (
+                        <p className="label-chrome mt-2 text-[10px]">Needs a Creatify key</p>
+                      )}
                     </div>
                   </button>
                 );
@@ -223,8 +233,8 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
                     className={cn(
                       "flex flex-col items-start gap-1 rounded-lg border-2 p-3 text-left transition-all",
                       selectedStyle === style.value
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
+                        ? "border-black bg-primary shadow-hard-sm"
+                        : "border-black bg-white hover:bg-accent"
                     )}
                   >
                     <p className="font-medium">{style.label}</p>
@@ -332,8 +342,8 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
                   className={cn(
                     "flex flex-col items-center gap-2 rounded-lg border-2 p-4 transition-all",
                     aspectRatio === ratio.value
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
+                      ? "border-black bg-primary shadow-hard-sm"
+                      : "border-black bg-white hover:bg-accent"
                   )}
                 >
                   {/* Visual aspect ratio preview */}

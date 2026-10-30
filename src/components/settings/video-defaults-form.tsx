@@ -188,8 +188,8 @@ export function VideoDefaultsForm() {
                 className={cn(
                   "flex flex-col items-start gap-2 rounded-lg border-2 p-4 text-left transition-all",
                   defaults.apiMethod === method.value
-                    ? "border-primary bg-primary/5"
-                    : "border-border hover:border-primary/50"
+                    ? "border-black bg-primary shadow-hard-sm"
+                    : "border-black bg-white hover:bg-accent"
                 )}
               >
                 <Icon className="h-5 w-5" />

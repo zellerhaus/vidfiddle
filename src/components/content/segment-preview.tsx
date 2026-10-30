@@ -206,7 +206,7 @@ function SegmentItem({ segment, index, onUpdate, queueStatus }: SegmentItemProps
                   key={i}
                   className="text-sm text-muted-foreground flex items-start gap-2"
                 >
-                  <span className="text-primary mt-1">•</span>
+                  <span className="mt-1">•</span>
                   <span>{point}</span>
                 </li>
               ))}

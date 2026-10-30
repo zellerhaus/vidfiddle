@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { decodeEntities, feedItemToBlogPost, htmlToText } from "../src/lib/rss";
+import { decodeEntities, feedItemToBlogPost, htmlToText, withoutLeadingTitle } from "../src/lib/rss";
 
 test("decodeEntities handles numeric, hex and named entities", () => {
   assert.equal(decodeEntities("NASA&#8217;s Hubble &amp; Webb"), "NASA’s Hubble & Webb");
@@ -27,4 +27,17 @@ test("feedItemToBlogPost stores plain text title, content and excerpt", () => {
   assert.equal(post.title, "NASA’s ISAM State of Play");
   assert.equal(post.content, "Servicing satellites in orbit.");
   assert.equal(post.excerpt, "Servicing satellites");
+});
+
+test("excerpts drop a title the feed repeats at the start of the description", () => {
+  assert.equal(
+    withoutLeadingTitle("Ocean Facts: What are Kelvin waves? Kelvin waves are difficult to see.", "Ocean Facts: What are Kelvin waves?"),
+    "Kelvin waves are difficult to see."
+  );
+  assert.equal(withoutLeadingTitle("Servicing satellites in orbit.", "NASA’s ISAM State of Play"), "Servicing satellites in orbit.");
+  const post = feedItemToBlogPost(
+    { title: "Aerial images now available", link: "https://example.com/a", contentSnippet: "Aerial images now available — An aerial view of Pensacola." },
+    "feed-1"
+  );
+  assert.equal(post.excerpt, "An aerial view of Pensacola.");
 });

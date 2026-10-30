@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Rss,
   FileText,
-  Video,
   History,
   Settings,
   Plus,
@@ -21,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { VidfiddleMark, VidfiddleWordmark } from "@/components/brand";
 import {
   Tooltip,
   TooltipTrigger,
@@ -90,11 +90,9 @@ export function Sidebar() {
         )}
       >
         <Link href="/" className="flex items-center gap-2">
-          <Video className="h-6 w-6 shrink-0 text-sidebar-primary" />
+          <VidfiddleMark />
           {!collapsed && (
-            <span className="text-lg font-semibold text-sidebar-accent-foreground whitespace-nowrap">
-              VideoGen
-            </span>
+            <VidfiddleWordmark className="text-[22px] text-white whitespace-nowrap" />
           )}
         </Link>
       </div>
@@ -112,7 +110,7 @@ export function Sidebar() {
             <TooltipTrigger asChild>
               <Link
                 href="/content/new"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-sidebar-primary text-sidebar-primary-foreground mb-4 shrink-0"
+                className="flex h-10 w-10 items-center justify-center border-2 border-white bg-sidebar-primary text-sidebar-primary-foreground shadow-[3px_3px_0_0_#fff] mb-4 shrink-0"
               >
                 <Plus className="h-4 w-4" />
               </Link>
@@ -121,7 +119,7 @@ export function Sidebar() {
           </Tooltip>
         ) : (
           <Link href="/content/new">
-            <Button className="w-full justify-start gap-2 mb-4">
+            <Button className="w-full justify-start gap-2 mb-4 border-white shadow-[4px_4px_0_0_#fff] hover:shadow-[5px_5px_0_0_#fff]">
               <Plus className="h-4 w-4" />
               New Video
             </Button>
@@ -141,13 +139,13 @@ export function Sidebar() {
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "flex items-center transition-colors relative",
+                  "flex items-center border-2 transition-colors relative",
                   collapsed
                     ? "h-10 w-10 justify-center"
-                    : "gap-3 rounded-lg px-3 py-2 text-sm font-medium",
+                    : "gap-3 px-3 py-2 label-chrome text-xs",
                   isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    ? "border-white bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "border-transparent text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
               >
                 <item.icon className="h-4 w-4 shrink-0" />
@@ -156,7 +154,7 @@ export function Sidebar() {
                     <span className="flex-1 whitespace-nowrap">{item.name}</span>
                     {showBadge && (
                       <Badge
-                        variant="secondary"
+                        variant="pink"
                         className="h-5 min-w-[20px] px-1.5 text-xs"
                       >
                         {pendingCount}
@@ -165,7 +163,7 @@ export function Sidebar() {
                   </>
                 )}
                 {collapsed && showBadge && (
-                  <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-sidebar-primary" />
+                  <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-black bg-pastel-pink" />
                 )}
               </Link>
             );
@@ -192,11 +190,14 @@ export function Sidebar() {
         )}
       >
         {!collapsed && (
-          <div className="rounded-lg bg-sidebar-accent/50 p-3">
-            <p className="text-xs text-sidebar-foreground">
-              Personal Tool v0.1.0
-            </p>
-          </div>
+          <a
+            href="https://github.com/zellerhaus/vidfiddle"
+            target="_blank"
+            rel="noreferrer"
+            className="block border-2 border-sidebar-border p-3 label-chrome text-[11px] text-sidebar-foreground hover:border-white hover:text-white"
+          >
+            Vidfiddle · MIT · GitHub
+          </a>
         )}
 
         {collapsed ? (

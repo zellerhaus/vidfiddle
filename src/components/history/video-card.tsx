@@ -42,12 +42,12 @@ const statusConfig = {
   generating: {
     label: "Generating",
     icon: Loader2,
-    variant: "default" as const,
+    variant: "info" as const,
   },
   completed: {
     label: "Completed",
     icon: CheckCircle,
-    variant: "default" as const,
+    variant: "success" as const,
   },
   failed: {
     label: "Failed",
@@ -83,10 +83,8 @@ function PlatformBadge({ post }: { post: ScheduledPost }) {
 
   const badgeContent = (
     <Badge
-      variant={isPublished ? "default" : "outline"}
-      className={`text-xs flex items-center gap-1 ${hasUrl ? "cursor-pointer hover:bg-accent" : ""} ${
-        isPublished ? "bg-green-600 hover:bg-green-700" : ""
-      }`}
+      variant={isPublished ? "success" : "outline"}
+      className={`text-xs flex items-center gap-1 ${hasUrl ? "cursor-pointer hover:bg-accent" : ""}`}
     >
       {isPublished ? (
         <CheckCircle className="h-3 w-3" />
@@ -207,8 +205,8 @@ export function VideoCard({ video, onDeleted }: VideoCardProps) {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="font-medium truncate">{video.blog_posts.title}</p>
+            <div className="min-w-0">
+              <p className="font-bold truncate">{video.blog_posts.title}</p>
               <p className="text-sm text-muted-foreground mt-1">
                 {isLocalVideo(video) ? "Local engine (OpenAI)" : styleLabels[video.style]}
               </p>
@@ -288,7 +286,7 @@ export function VideoCard({ video, onDeleted }: VideoCardProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-destructive hover:text-destructive"
+                className="hover:bg-destructive"
                 disabled={isDeleting}
               >
                 {isDeleting ? (
@@ -311,7 +309,7 @@ export function VideoCard({ video, onDeleted }: VideoCardProps) {
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDelete}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="bg-destructive text-black hover:bg-destructive"
                 >
                   Delete
                 </AlertDialogAction>

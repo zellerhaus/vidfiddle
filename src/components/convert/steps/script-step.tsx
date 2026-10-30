@@ -109,7 +109,7 @@ export function ScriptStep({ post, segment, onComplete }: ScriptStepProps) {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
+            <Sparkles className="h-5 w-5" />
             Generate Video Script
           </CardTitle>
           <CardDescription>
@@ -123,7 +123,7 @@ export function ScriptStep({ post, segment, onComplete }: ScriptStepProps) {
               Source: {segment ? segment.title : post.title}
             </h4>
             {segment && (
-              <p className="text-xs text-primary mb-2">
+              <p className="text-xs font-semibold mb-2">
                 Segment {(segment.segment_index ?? 0) + 1} of &ldquo;{post.title}&rdquo;
               </p>
             )}
@@ -156,7 +156,7 @@ export function ScriptStep({ post, segment, onComplete }: ScriptStepProps) {
                       <span className="flex items-center gap-2">
                         {guideline.name}
                         {guideline.is_default && (
-                          <Star className="h-3 w-3 text-yellow-500" />
+                          <Star className="h-3 w-3 fill-pastel-yellow" />
                         )}
                       </span>
                     </SelectItem>
@@ -178,7 +178,7 @@ export function ScriptStep({ post, segment, onComplete }: ScriptStepProps) {
 
           {isGenerating && !script && (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              <Loader2 className="h-6 w-6 animate-spin" />
               <span className="ml-2 text-muted-foreground">Generating script...</span>
             </div>
           )}

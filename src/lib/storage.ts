@@ -12,7 +12,7 @@ const VALID_KEY_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9/_\-.]*$/;
 
 let hasWarnedMissingPublicUrl = false;
 
-function getStorageDriver(): StorageDriver {
+export function getStorageDriver(): StorageDriver {
   return process.env.STORAGE_DRIVER?.toLowerCase() === "s3" ? "s3" : "local";
 }
 

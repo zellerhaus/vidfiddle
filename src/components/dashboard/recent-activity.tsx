@@ -17,12 +17,12 @@ const statusConfig = {
   generating: {
     label: "Generating",
     icon: Loader2,
-    variant: "default" as const,
+    variant: "info" as const,
   },
   completed: {
     label: "Completed",
     icon: CheckCircle,
-    variant: "default" as const,
+    variant: "success" as const,
   },
   failed: {
     label: "Failed",

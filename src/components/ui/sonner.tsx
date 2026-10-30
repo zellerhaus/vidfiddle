@@ -17,6 +17,16 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
+      toastOptions={{
+        // BlockFrame toast: bordered card with a hard shadow; status as a pastel fill.
+        classNames: {
+          toast: "!border-2 !border-black !shadow-hard-sm !font-medium",
+          success: "!bg-success !text-black",
+          error: "!bg-destructive !text-black",
+          info: "!bg-info !text-black",
+          warning: "!bg-warning !text-black",
+        },
+      }}
       icons={{
         success: <CircleCheckIcon className="size-4" />,
         info: <InfoIcon className="size-4" />,

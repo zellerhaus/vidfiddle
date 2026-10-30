@@ -196,7 +196,7 @@ export function ProcessingStatus({ sourceId, pipeline = "legacy" }: ProcessingSt
                         isComplete
                           ? "bg-primary text-primary-foreground"
                           : isActive
-                            ? "bg-primary/20 text-primary"
+                            ? "bg-pastel-cream text-black"
                             : "bg-muted text-muted-foreground"
                       }`}
                     >
@@ -230,7 +230,7 @@ export function ProcessingStatus({ sourceId, pipeline = "legacy" }: ProcessingSt
                       <Badge variant="secondary">In Progress</Badge>
                     )}
                     {isComplete && (
-                      <Badge variant="outline" className="text-primary">
+                      <Badge variant="info">
                         Done
                       </Badge>
                     )}
@@ -258,7 +258,7 @@ export function ProcessingStatus({ sourceId, pipeline = "legacy" }: ProcessingSt
                 <div className="text-xs text-muted-foreground">Detected</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-primary">
+                <div className="display text-3xl">
                   {status.clips.completed}
                 </div>
                 <div className="text-xs text-muted-foreground">Ready</div>

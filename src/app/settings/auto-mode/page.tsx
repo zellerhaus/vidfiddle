@@ -173,9 +173,9 @@ export default function AutoModeStatusPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium">Check Feeds</CardTitle>
                 {status?.lastCronRuns.checkFeeds?.status === "success" ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 fill-pastel-green" />
                 ) : status?.lastCronRuns.checkFeeds?.status === "error" ? (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
+                  <AlertCircle className="h-4 w-4 fill-destructive" />
                 ) : (
                   <Clock className="h-4 w-4 text-muted-foreground" />
                 )}
@@ -209,9 +209,9 @@ export default function AutoModeStatusPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium">Process Queue</CardTitle>
                 {status?.lastCronRuns.processQueue?.status === "success" ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 fill-pastel-green" />
                 ) : status?.lastCronRuns.processQueue?.status === "error" ? (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
+                  <AlertCircle className="h-4 w-4 fill-destructive" />
                 ) : (
                   <Clock className="h-4 w-4 text-muted-foreground" />
                 )}
@@ -245,9 +245,9 @@ export default function AutoModeStatusPage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-sm font-medium">Check Creatify</CardTitle>
                 {status?.lastCronRuns.checkCreatify?.status === "success" ? (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
+                  <CheckCircle className="h-4 w-4 fill-pastel-green" />
                 ) : status?.lastCronRuns.checkCreatify?.status === "error" ? (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
+                  <AlertCircle className="h-4 w-4 fill-destructive" />
                 ) : (
                   <Clock className="h-4 w-4 text-muted-foreground" />
                 )}
@@ -289,15 +289,15 @@ export default function AutoModeStatusPage() {
                 <span className="text-sm text-muted-foreground">Pending</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-2xl font-bold text-blue-500">{status?.queueCounts.processing ?? 0}</span>
+                <span className="display text-4xl">{status?.queueCounts.processing ?? 0}</span>
                 <span className="text-sm text-muted-foreground">Processing</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-2xl font-bold text-green-500">{status?.queueCounts.completed ?? 0}</span>
+                <span className="display text-4xl">{status?.queueCounts.completed ?? 0}</span>
                 <span className="text-sm text-muted-foreground">Completed</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-2xl font-bold text-red-500">{status?.queueCounts.failed ?? 0}</span>
+                <span className="display text-4xl">{status?.queueCounts.failed ?? 0}</span>
                 <span className="text-sm text-muted-foreground">Failed</span>
               </div>
             </div>
@@ -312,7 +312,7 @@ export default function AutoModeStatusPage() {
               <CardDescription>Feeds configured for automatic generation</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="h-[250px]">
+              <ScrollArea className="h-[250px] [&_[data-radix-scroll-area-viewport]>div]:!block">
                 <div className="divide-y">
                   {status?.feeds.length === 0 ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">
@@ -325,9 +325,9 @@ export default function AutoModeStatusPage() {
                           <p className="text-sm font-medium truncate">{feed.title || "Untitled"}</p>
                           <p className="text-xs text-muted-foreground truncate">{feed.url}</p>
                         </div>
-                        <div className="flex items-center gap-2 ml-2">
+                        <div className="flex shrink-0 items-center gap-2 ml-2">
                           {feed.auto_mode_enabled ? (
-                            <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/30">
+                            <Badge className="bg-pastel-yellow">
                               <Zap className="h-3 w-3 mr-1" />
                               {feed.auto_videos_per_post}x
                             </Badge>
@@ -350,7 +350,7 @@ export default function AutoModeStatusPage() {
               <CardDescription>Cron job failures</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="h-[250px]">
+              <ScrollArea className="h-[250px] [&_[data-radix-scroll-area-viewport]>div]:!block">
                 <div className="divide-y">
                   {status?.recentErrors.length === 0 ? (
                     <div className="p-4 text-center text-sm text-muted-foreground">

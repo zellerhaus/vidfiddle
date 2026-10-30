@@ -163,8 +163,8 @@ export function AvatarSelector({
                   className={cn(
                     "flex flex-col items-center gap-1 rounded-lg border-2 p-2 transition-all cursor-pointer",
                     value === avatar.id
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/50"
+                      ? "border-black bg-primary shadow-hard-sm"
+                      : "border-black bg-white hover:bg-accent"
                   )}
                 >
                   {avatar.thumbnail_url ? (
@@ -182,7 +182,7 @@ export function AvatarSelector({
                     {avatar.name}
                   </span>
                   {value === avatar.id && (
-                    <Check className="h-3 w-3 text-primary" />
+                    <Check className="h-3 w-3" />
                   )}
                 </button>
               ))}

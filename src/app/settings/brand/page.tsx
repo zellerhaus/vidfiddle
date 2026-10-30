@@ -469,7 +469,7 @@ export default function BrandGuidelinesPage() {
                           key={phrase}
                           className="flex items-center justify-between p-2 bg-muted rounded text-sm"
                         >
-                          <span className="italic">"{phrase}"</span>
+                          <span className="italic">&ldquo;{phrase}&rdquo;</span>
                           <Button
                             type="button"
                             variant="ghost"

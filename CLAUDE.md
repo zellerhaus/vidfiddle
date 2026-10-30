@@ -7,7 +7,7 @@ social media. See README.md for what it does and how to run it.
 
 - **Framework:** Next.js 16 (App Router), React 19, TypeScript
 - **Database:** PostgreSQL through Drizzle ORM (`src/db`)
-- **Styling:** Tailwind CSS 4 + shadcn/ui (New York style, neutral palette, Lucide icons)
+- **Styling:** Tailwind CSS 4 + shadcn/ui primitives restyled as BlockFrame (see Design below), Lucide icons
 - **Deployment:** docker compose (`app`, `worker`, `postgres`)
 - **APIs:** OpenAI or Anthropic (text), OpenAI (local video engine), Creatify (optional hosted video),
   Publer or LightPost (publishing), Deepgram/Creatomate/Submagic (optional YouTube clips)
@@ -77,6 +77,16 @@ A local-engine video is a `videos` row with `status: "pending"`, no `creatify_jo
 ### Media
 Use `src/lib/storage.ts`: `saveFile`, `publicUrl`, `keyFromUrl`, `localPath`. Social platforms fetch
 media by URL, so stored media must be reachable at `PUBLIC_URL` (or `S3_PUBLIC_URL`).
+
+### Design (BlockFrame)
+
+The UI shares the launch videos' look. Tokens live in `src/app/globals.css`:
+- Black borders and hard offset shadows (`shadow-hard` 8px, `shadow-hard-sm` 4px; the `shadow-*` scale is redefined as zero-blur offsets). Square corners everywhere; pills (`Badge`) are the only rounded shapes.
+- Candy palette: `bg-pastel-pink|blue|green|yellow|cream` on an offwhite ground (`dot-grid` utility for the faint dot pattern). Primary is yellow with black text.
+- Status colors are semantic badge variants: `success` (done), `info` (in progress), `warning`, `destructive` (failed), `pink`. Don't hard-code Tailwind palette colors (`text-green-500` etc.).
+- Type: Inter (body 500, `.display` = 900 uppercase tight for headings and big numbers), Space Grotesk via `.label-chrome` for pills, eyebrows and nav.
+- Platform chip colors come from `src/lib/platform-colors.ts`.
+- Brand: `VidfiddleMark` / `VidfiddleWordmark` in `src/components/brand.tsx`; the same mark is `src/app/icon.svg`.
 
 ## Authentication
 

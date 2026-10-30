@@ -40,8 +40,8 @@ interface ContentListProps {
 
 const statusConfig = {
   new: { label: "New", variant: "default" as const },
-  converting: { label: "Converting", variant: "secondary" as const },
-  converted: { label: "Converted", variant: "outline" as const },
+  converting: { label: "Converting", variant: "info" as const },
+  converted: { label: "Converted", variant: "success" as const },
   ignored: { label: "Ignored", variant: "secondary" as const },
 };
 
@@ -109,8 +109,8 @@ export function ContentList({ posts }: ContentListProps) {
           return (
             <Card key={post.id} className="hover:bg-muted/30 transition-colors">
               <CardContent className="flex items-start gap-4 p-4">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 flex-shrink-0">
-                  <FileText className="h-5 w-5 text-primary" />
+                <div className="flex h-10 w-10 items-center justify-center border-2 border-black bg-pastel-blue flex-shrink-0">
+                  <FileText className="h-5 w-5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">

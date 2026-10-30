@@ -2,17 +2,11 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Video, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { VidfiddleMark } from "@/components/brand";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -47,19 +41,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-2">
-            <Video className="h-8 w-8 text-primary" />
+    <div className="dot-grid flex min-h-screen items-center justify-center bg-pastel-blue p-6">
+      <div className="w-full max-w-md">
+        {/* Wordmark card, tilted like the launch video's title card */}
+        <div className="relative mb-10 flex justify-center">
+          <div className="-rotate-3 border-4 border-black bg-white px-7 py-4 shadow-hard">
+            <h1 className="display text-5xl sm:text-6xl">Vidfiddle</h1>
           </div>
-          <CardTitle>VideoGen</CardTitle>
-          <CardDescription>Enter your password to continue</CardDescription>
-        </CardHeader>
-        <CardContent>
+          <div className="star-burst absolute -top-6 right-6 size-14 bg-pastel-yellow sm:right-10" aria-hidden="true" />
+        </div>
+
+        <div className="border-4 border-black bg-white p-6 shadow-hard">
+          <div className="mb-5 flex items-center gap-3">
+            <VidfiddleMark className="size-9" />
+            <p className="text-sm font-semibold leading-snug">
+              Your blog already wrote your next 100 videos.
+            </p>
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="label-chrome text-xs">Password</Label>
               <Input
                 id="password"
                 type="password"
@@ -70,8 +71,10 @@ export default function LoginPage() {
                 required
               />
             </div>
-            {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full" disabled={loading}>
+            {error && (
+              <p className="border-2 border-black bg-destructive px-3 py-2 text-sm font-semibold">{error}</p>
+            )}
+            <Button type="submit" size="lg" className="w-full" disabled={loading}>
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -82,8 +85,8 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

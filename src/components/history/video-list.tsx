@@ -44,7 +44,7 @@ export function VideoList({ initialVideos }: VideoListProps) {
         <BulkScheduleButton videos={videos} />
         <RescheduleFailedButton />
       </div>
-      <div className="grid gap-4">
+      <div className="grid grid-cols-1 gap-4">
         {videos.map((video) => (
           <VideoCard key={video.id} video={video} onDeleted={handleDeleted} />
         ))}

@@ -210,7 +210,7 @@ export function VideoStep({
               <div className="flex items-center justify-center py-8">
                 <div className="relative">
                   <div className="h-24 w-24 rounded-full border-4 border-muted flex items-center justify-center">
-                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                    <Loader2 className="h-10 w-10 animate-spin" />
                   </div>
                 </div>
               </div>
