@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne } from "drizzle-orm";
 import { db } from "@/db";
-import { blog_posts, videos } from "@/db/schema";
+import { blog_posts, scheduled_posts, videos } from "@/db/schema";
 import {
   createAIShorts,
   createLinkFromUrl,
@@ -14,6 +14,50 @@ import {
 } from "@/lib/creatify";
 import { buildLocalEngineOptions, isLocalEngineConfigured } from "@/lib/local-engine";
 import type { CreatifyApiMethod } from "@/lib/supabase/types";
+
+type VideoValues = typeof videos.$inferInsert;
+
+/** A post (or one of its segments) has at most one video that isn't failed. */
+async function findActiveVideo(blogPostId: string, segmentId: string | null) {
+  const [video] = await db
+    .select({ id: videos.id, status: videos.status })
+    .from(videos)
+    .where(
+      and(
+        eq(videos.blog_post_id, blogPostId),
+        segmentId ? eq(videos.content_segment_id, segmentId) : isNull(videos.content_segment_id),
+        ne(videos.status, "failed")
+      )
+    )
+    .limit(1);
+  return video ?? null;
+}
+
+/** Inserts the video, or renders the post's finished video again in place with the new settings. */
+async function saveVideo(existingId: string | null, values: VideoValues) {
+  if (!existingId) {
+    const [video] = await db.insert(videos).values(values).returning();
+    return video;
+  }
+  const [video] = await db
+    .update(videos)
+    .set({
+      ...values,
+      video_url: null,
+      creatify_video_url: null,
+      duration_seconds: null,
+      error_message: null,
+      generated_captions: null,
+    })
+    .where(eq(videos.id, existingId))
+    .returning();
+  return video;
+}
+
+function isUniqueViolation(error: unknown): boolean {
+  const code = (e: unknown) => (typeof e === "object" && e !== null ? (e as { code?: unknown }).code : undefined);
+  return code(error) === "23505" || code((error as { cause?: unknown })?.cause) === "23505";
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -99,14 +143,33 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (apiMethod === "local") {
-      let video: typeof videos.$inferSelect | undefined;
-      try {
-        [video] = await db
-          .insert(videos)
-          .values({
+    const segmentId = contentSegmentId || null;
+    const active = await findActiveVideo(blogPostId, segmentId);
+
+    // Already rendering, from a double click or a retry while the first request ran: follow that one.
+    if (active && (active.status === "pending" || active.status === "generating")) {
+      return NextResponse.json({ videoId: active.id, status: active.status });
+    }
+
+    if (active) {
+      const [scheduled] = await db
+        .select({ id: scheduled_posts.id })
+        .from(scheduled_posts)
+        .where(and(eq(scheduled_posts.video_id, active.id), inArray(scheduled_posts.status, ["pending", "scheduled"])))
+        .limit(1);
+      if (scheduled) {
+        return NextResponse.json(
+          { error: "This video is scheduled to post. Remove it from the calendar before making a new one." },
+          { status: 409 }
+        );
+      }
+    }
+
+    const values: VideoValues =
+      apiMethod === "local"
+        ? {
             blog_post_id: blogPostId,
-            content_segment_id: contentSegmentId || null,
+            content_segment_id: segmentId,
             script,
             style: "stock_footage",
             style_options: buildLocalEngineOptions({
@@ -120,50 +183,53 @@ export async function POST(request: NextRequest) {
             }),
             status: "pending",
             creatify_job_id: null,
-          })
-          .returning();
+          }
+        : {
+            blog_post_id: blogPostId,
+            content_segment_id: segmentId,
+            script,
+            style: "stock_footage", // Our DB enum
+            style_options: {
+              apiVersion: apiMethod,
+              creatifyStyle: style,
+              aspectRatio,
+              accentId,
+              voiceoverVolume: voiceoverVolume ?? 1.0,
+              backgroundMusicVolume: backgroundMusicVolume ?? 0.3,
+              visualStyle,
+              videoLength,
+              avatarId,
+            },
+            status: "pending",
+            creatify_job_id: null,
+          };
 
-        if (!video) throw new Error("Failed to create video record");
-      } catch (insertError) {
-        console.error("Error creating video record:", insertError);
-        throw insertError;
+    let video: typeof videos.$inferSelect | undefined;
+    try {
+      video = await saveVideo(active?.id ?? null, values);
+      if (!video) throw new Error("Failed to create video record");
+    } catch (insertError) {
+      // Two requests raced past the check above; the other one created the video.
+      if (isUniqueViolation(insertError)) {
+        const winner = await findActiveVideo(blogPostId, segmentId);
+        if (winner) return NextResponse.json({ videoId: winner.id, status: winner.status });
       }
+      console.error("Error creating video record:", insertError);
+      throw insertError;
+    }
 
+    // Move the post out of New, as Auto Mode and the Content page's bulk action do.
+    await db
+      .update(blog_posts)
+      .set({ status: "converting" })
+      .where(and(eq(blog_posts.id, blogPostId), eq(blog_posts.status, "new")))
+      .catch(() => {});
+
+    if (apiMethod === "local") {
       return NextResponse.json({
         videoId: video.id,
         status: "pending",
       });
-    }
-
-    // Create video record in database
-    let video: typeof videos.$inferSelect | undefined;
-    try {
-      [video] = await db
-        .insert(videos)
-        .values({
-          blog_post_id: blogPostId,
-          content_segment_id: contentSegmentId || null,
-          script,
-          style: "stock_footage", // Our DB enum
-          style_options: {
-            apiVersion: apiMethod,
-            creatifyStyle: style,
-            aspectRatio,
-            accentId,
-            voiceoverVolume: voiceoverVolume ?? 1.0,
-            backgroundMusicVolume: backgroundMusicVolume ?? 0.3,
-            visualStyle,
-            videoLength,
-            avatarId,
-          },
-          status: "pending",
-        })
-        .returning();
-
-      if (!video) throw new Error("Failed to create video record");
-    } catch (insertError) {
-      console.error("Error creating video record:", insertError);
-      throw insertError;
     }
 
     // Start video generation with appropriate Creatify API

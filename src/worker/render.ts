@@ -4,7 +4,7 @@
  * hands the video to the review queue, the same end state as a finished Creatify job.
  */
 import { createReadStream } from "node:fs";
-import { rm } from "node:fs/promises";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -57,6 +57,16 @@ async function renderOne(job: { id: string; script: string; style_options: unkno
   const music = toMusicChoice(options?.music);
   console.log(`[render] ${job.id}: started`);
 
+  // Files left by a failed attempt are reused on retry, but not after the video was sent back with
+  // new settings: a different voice would otherwise keep the old narration.
+  const inputs = JSON.stringify({ script: job.script, options: job.style_options });
+  const inputsFile = join(workDir, "inputs.json");
+  if ((await readFile(inputsFile, "utf8").catch(() => inputs)) !== inputs) {
+    await rm(workDir, { recursive: true, force: true });
+  }
+  await mkdir(workDir, { recursive: true });
+  await writeFile(inputsFile, inputs);
+
   const result = await renderVideo({
     script: job.script,
     workDir,
@@ -90,7 +100,8 @@ async function renderOne(job: { id: string; script: string; style_options: unkno
     .update(videos)
     .set({
       status: "completed",
-      video_url: publicUrl(key),
+      // Media is served as immutable, so a video rendered again needs a new URL to show the new file.
+      video_url: `${publicUrl(key)}?v=${Date.now()}`,
       duration_seconds: Math.round(result.durationSeconds),
       approval_status: "pending_review",
       error_message: null,

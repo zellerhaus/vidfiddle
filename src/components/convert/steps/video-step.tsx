@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,8 +44,14 @@ export function VideoStep({
   const [error, setError] = useState<string | null>(null);
   const [creditsUsed, setCreditsUsed] = useState<number | null>(null);
   const isLocal = styleOptions.apiMethod === "local";
+  // Effects run twice in development, which used to send two generate requests.
+  const startedRef = useRef(false);
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+
     // If we have an existing video that's generating, poll its status
     if (existingVideoId && !existingVideoUrl) {
       pollStatus(existingVideoId);
@@ -57,6 +63,21 @@ export function VideoStep({
       startGeneration();
     }
   }, [existingVideoId, existingVideoUrl]);
+
+  // Stop polling when the user leaves the step.
+  const unmountedRef = useRef(false);
+  useEffect(() => {
+    unmountedRef.current = false;
+    return () => {
+      unmountedRef.current = true;
+      stopPolling();
+    };
+  }, []);
+
+  function stopPolling() {
+    if (pollTimerRef.current) clearInterval(pollTimerRef.current);
+    pollTimerRef.current = null;
+  }
 
   async function startGeneration() {
     setStatus("generating");
@@ -170,19 +191,15 @@ export function VideoStep({
     };
 
     // Initial poll
+    stopPolling();
     const shouldStop = await poll();
-    if (shouldStop) return;
+    if (shouldStop || unmountedRef.current) return;
 
     // Continue polling every 5 seconds
-    const interval = setInterval(async () => {
+    pollTimerRef.current = setInterval(async () => {
       const shouldStop = await poll();
-      if (shouldStop) {
-        clearInterval(interval);
-      }
+      if (shouldStop) stopPolling();
     }, 5000);
-
-    // Cleanup on unmount
-    return () => clearInterval(interval);
   }
 
   const aspectRatioClass = {
@@ -201,9 +218,8 @@ export function VideoStep({
           </CardTitle>
           <CardDescription>
             {isLocal
-              ? `Rendering locally with OpenAI (${styleOptions.aspectRatio}).`
-              : `Creating your ${styleOptions.creatifyStyle} video (${styleOptions.aspectRatio}).`}
-            This typically takes 2-5 minutes.
+              ? `Rendering on your server${styleOptions.voiceProvider === "elevenlabs" ? " with an ElevenLabs voice" : ""} (${styleOptions.aspectRatio}). This usually takes a minute or two.`
+              : `Creating your ${styleOptions.creatifyStyle} video (${styleOptions.aspectRatio}). This typically takes 2-5 minutes.`}
             {!isLocal && creditsUsed && ` • ${creditsUsed} credits used`}
           </CardDescription>
         </CardHeader>

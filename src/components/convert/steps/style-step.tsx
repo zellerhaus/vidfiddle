@@ -49,6 +49,8 @@ export interface StyleOptions {
 
 interface StyleStepProps {
   script: string;
+  /** Choices made earlier in this conversion; they take precedence over the saved defaults. */
+  initialOptions?: StyleOptions | null;
   onComplete: (options: StyleOptions) => void;
   onBack: () => void;
 }
@@ -73,7 +75,7 @@ type VideoDefaultsResponse = VideoDefaults & {
   };
 };
 
-export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
+export function StyleStep({ script, initialOptions, onComplete, onBack }: StyleStepProps) {
   const [apiMethod, setApiMethod] = useState<CreatifyApiMethod>("ai_shorts");
   const [selectedStyle, setSelectedStyle] = useState<CreatifyStyle>("4K realistic");
   const [visualStyle, setVisualStyle] = useState("FullScreenTemplate");
@@ -149,6 +151,9 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
           if (MUSIC_OPTIONS.some((m) => m.value === defaults.musicMood)) {
             setMusicMood(defaults.musicMood as MusicChoice);
           }
+          if (initialOptions) {
+            restoreOptions(initialOptions, hasElevenLabs);
+          }
         }
       } catch (error) {
         console.error("Failed to fetch video defaults:", error);
@@ -159,6 +164,23 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
 
     fetchDefaults();
   }, []);
+
+  function restoreOptions(options: StyleOptions, hasElevenLabs: boolean) {
+    setApiMethod(options.apiMethod);
+    setSelectedStyle(options.creatifyStyle);
+    setVisualStyle(options.visualStyle || "FullScreenTemplate");
+    if (options.videoLength) setVideoLength(options.videoLength);
+    setAvatarId(options.avatarId ?? null);
+    setAspectRatio(options.aspectRatio);
+    setVoiceoverVolume(options.voiceoverVolume);
+    setBackgroundMusicVolume(options.backgroundMusicVolume);
+    const provider = options.voiceProvider === "elevenlabs" && hasElevenLabs ? "elevenlabs" : "openai";
+    setVoiceProvider(provider);
+    // An ElevenLabs voice ID means nothing to the OpenAI picker.
+    setVoiceId(provider === (options.voiceProvider ?? "openai") ? options.voiceId : null);
+    if (options.pacing) setPacing(options.pacing);
+    if (options.musicMood) setMusicMood(options.musicMood);
+  }
 
   function handleContinue() {
     const localVisualStyle =
@@ -482,8 +504,8 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
             </div>
           </div>
 
-          {/* Audio Settings */}
-          {apiMethod !== "local" && (
+          {/* Audio Settings (waits for the defaults, so it doesn't load Creatify voices for a local render) */}
+          {apiMethod !== "local" && !isLoadingDefaults && (
           <div className="border-t pt-6 space-y-4">
             <h4 className="font-medium">Audio Settings</h4>
 

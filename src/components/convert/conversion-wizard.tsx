@@ -150,7 +150,8 @@ export function ConversionWizard({ post, existingVideo, segment }: ConversionWiz
   }
 
   function handleStyleComplete(options: StyleOptions) {
-    setState((prev) => ({ ...prev, styleOptions: options }));
+    // "Generate Video" renders with these settings, replacing a video made earlier.
+    setState((prev) => ({ ...prev, styleOptions: options, videoId: null, videoUrl: null }));
     setCurrentStep("video");
   }
 
@@ -225,6 +226,7 @@ export function ConversionWizard({ post, existingVideo, segment }: ConversionWiz
         {currentStep === "style" && (
           <StyleStep
             script={state.script}
+            initialOptions={state.styleOptions}
             onComplete={handleStyleComplete}
             onBack={() => setCurrentStep("script")}
           />
