@@ -102,14 +102,16 @@ export async function cutClip(params: {
         await writeFile(input, await downloadVideo(videoUrl));
       }
 
-      // -ss before -i seeks fast; stream copy cuts without re-encoding.
+      // -ss before -i seeks fast. Re-encode rather than stream copy: copying snaps the start to
+      // the previous keyframe (seconds early), which throws off captions timed from startTime.
       const output = join(dir, "clip.mp4");
       await run(FFMPEG, [
         "-ss", String(startTime),
         "-i", input,
         "-t", String(endTime - startTime),
-        "-c", "copy",
-        "-avoid_negative_ts", "make_zero",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+        "-c:a", "aac", "-b:a", "160k",
+        "-movflags", "+faststart",
         "-y", output,
       ]);
       const clipKey = `youtube/clips/${clipId}.mp4`;
