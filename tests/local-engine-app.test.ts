@@ -94,8 +94,11 @@ test("generate route local branch inserts a pending local video", {
     assert.deepEqual(video.style_options, {
       apiVersion: "local",
       aspectRatio: "16x9",
+      voiceProvider: "openai",
       voice: "nova",
       visualStyle: "flat paper-cut illustration, warm colors",
+      pacing: "medium",
+      music: "auto",
     });
   } finally {
     if (videoId) {
