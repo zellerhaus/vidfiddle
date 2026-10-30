@@ -210,7 +210,7 @@ export function VideoCard({ video, onDeleted }: VideoCardProps) {
             <div>
               <p className="font-medium truncate">{video.blog_posts.title}</p>
               <p className="text-sm text-muted-foreground mt-1">
-                {styleLabels[video.style]}
+                {isLocalVideo(video) ? "Local engine (OpenAI)" : styleLabels[video.style]}
               </p>
               <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">

@@ -125,23 +125,34 @@ function parseAtom(feed: any): ParsedFeed {
   return { title, description, link, items };
 }
 
+/** Decodes the HTML entities feeds commonly leave in titles and text (&#8217;, &amp;, ...). */
+export function decodeEntities(text: string): string {
+  const named: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+  return text
+    .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&(amp|lt|gt|quot|apos|nbsp);/g, (_, e) => named[e]);
+}
+
+/** Plain text from feed HTML: tags removed, entities decoded, whitespace collapsed. */
+export function htmlToText(html: string): string {
+  return decodeEntities(html.replace(/<[^>]*>/g, " ")).replace(/\s+/g, " ").trim();
+}
+
 export function feedItemToBlogPost(
   item: FeedItem,
   feedId: string
 ): BlogPostInsert {
-  // Clean HTML content
-  const content = item.content || "";
-  const cleanContent = content
-    .replace(/<[^>]*>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
+  // Feeds send HTML (sometimes escaped inside the description), so store plain text everywhere.
+  const cleanContent = htmlToText(item.content || "");
+  const cleanSnippet = htmlToText(item.contentSnippet || "");
 
   return {
     feed_id: feedId,
     url: item.link,
-    title: item.title,
-    content: cleanContent || item.contentSnippet || "",
-    excerpt: item.contentSnippet?.slice(0, 300),
+    title: decodeEntities(item.title),
+    content: cleanContent || cleanSnippet,
+    excerpt: (cleanSnippet || cleanContent).slice(0, 300) || undefined,
     published_at: item.pubDate ? new Date(item.pubDate).toISOString() : null,
     status: "new",
   };

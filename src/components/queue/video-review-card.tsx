@@ -12,6 +12,7 @@ import {
   Edit,
   Play,
 } from "lucide-react";
+import { isLocalEngineOptions } from "@/lib/local-engine";
 import type { VideoWithPostAndScheduled, Platform } from "@/lib/supabase/types";
 
 const styleLabels: Record<string, string> = {
@@ -76,7 +77,9 @@ export function VideoReviewCard({
                 <div>
                   <h3 className="font-medium">{video.blog_posts.title}</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {styleLabels[video.style] || video.style}
+                    {isLocalEngineOptions(video.style_options)
+                      ? "Local engine (OpenAI)"
+                      : styleLabels[video.style] || video.style}
                   </p>
                 </div>
                 <Badge variant="secondary">Attempt #{video.generation_attempt}</Badge>
