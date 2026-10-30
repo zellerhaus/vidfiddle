@@ -1,6 +1,3 @@
-<p align="center">
-  <img src="docs/media/hero.gif" alt="Vidfiddle turns blog posts into short videos in eight art styles, waits for your approval, then schedules them" width="720">
-</p>
 
 
 
