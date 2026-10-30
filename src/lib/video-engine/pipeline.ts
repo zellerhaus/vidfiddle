@@ -110,6 +110,11 @@ async function produce(file: string, make: (tmp: string) => Promise<void>): Prom
   await rename(tmp, file);
 }
 
+/** Image prompt with the art style first: models weight the start, and a trailing style line lost to photographic scene detail. */
+export function styledPrompt(style: string, visual: string): string {
+  return `Art style: ${style}.\n\n${visual}\n\nRender the whole image in that art style.`;
+}
+
 export async function renderVideo(opts: RenderOptions): Promise<RenderResult> {
   const aspect = opts.aspect ?? "9x16";
   const size = OUTPUT_SIZE[aspect];
@@ -155,12 +160,12 @@ export async function renderVideo(opts: RenderOptions): Promise<RenderResult> {
       produce(file(i, "mp3"), (tmp) => providers.voice.speak(scene.narration, tmp)),
       produce(file(i, "png"), async (tmp) => {
         try {
-          await providers.visuals.still(`${scene.visual}\n\nStyle: ${plan.style}`, aspect, tmp);
+          await providers.visuals.still(styledPrompt(plan.style, scene.visual), aspect, tmp);
         } catch (error) {
           if (!isContentRejection(error)) throw error;
           // One refused image shouldn't sink the whole video: fall back to a symbolic scene.
           log(`Scene ${i + 1}: image prompt refused by the safety filter, retrying with a generic prompt`);
-          await providers.visuals.still(`${genericScenePrompt(scene.narration)}\n\nStyle: ${plan.style}`, aspect, tmp);
+          await providers.visuals.still(styledPrompt(plan.style, genericScenePrompt(scene.narration)), aspect, tmp);
         }
       }),
     ]);

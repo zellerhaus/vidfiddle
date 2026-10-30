@@ -91,7 +91,9 @@ class OpenAIPlanner implements ScenePlanner {
             "person, a celebrity, or a famous fictional character, and don't describe costumes that " +
             "imitate one; use generic figures instead. " +
             `Compose for a ${orientation} frame with the subject centered, because the frame ` +
-            "slowly zooms and the lower third is covered by captions. All scenes share one visual style.",
+            "slowly zooms and the lower third is covered by captions. All scenes share one visual style: " +
+            "write every prompt in that style's own terms (medium, texture, palette), and describe a " +
+            "photograph or camera only when the style is photographic.",
         },
         {
           role: "user",
