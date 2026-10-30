@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ExternalLink, CheckCircle, XCircle, ChevronRight, Sparkles, Zap } from "lucide-react";
+import { ExternalLink, CheckCircle, XCircle, ChevronRight, Info, Sparkles, Zap } from "lucide-react";
 import { getPublisher, type PublisherAccount } from "@/lib/publishers";
 import { isLLMConfigured, llmProviderName } from "@/lib/llm";
 import { isLocalEngineConfigured } from "@/lib/local-engine";
@@ -274,6 +274,24 @@ export default async function SettingsPage() {
                     <p className="font-bold">Auto Mode Status</p>
                     <p className="text-sm text-muted-foreground">
                       Monitor automatic video generation and cron jobs
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="h-5 w-5" />
+              </Link>
+
+              <Link
+                href="/settings/about"
+                className="flex items-center justify-between border-2 border-transparent p-3 transition-colors hover:border-black hover:bg-white"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center border-2 border-black bg-pastel-blue">
+                    <Info className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-bold">About &amp; credits</p>
+                    <p className="text-sm text-muted-foreground">
+                      Version, license, and the music, fonts and software Vidfiddle uses
                     </p>
                   </div>
                 </div>

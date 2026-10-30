@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { VidfiddleMark } from "@/components/brand";
+import { LICENSE_NAME, LICENSE_URL, REPO_URL } from "@/lib/project";
 
 export default function LoginPage() {
   const [password, setPassword] = useState("");
@@ -86,6 +87,17 @@ export default function LoginPage() {
             </Button>
           </form>
         </div>
+
+        <p className="label-chrome mt-6 text-center text-[11px]">
+          Vidfiddle is open source under the{" "}
+          <a href={LICENSE_URL} target="_blank" rel="noreferrer" className="underline decoration-2 underline-offset-2 hover:bg-white">
+            {LICENSE_NAME}
+          </a>
+          {" · "}
+          <a href={REPO_URL} target="_blank" rel="noreferrer" className="underline decoration-2 underline-offset-2 hover:bg-white">
+            View on GitHub
+          </a>
+        </p>
       </div>
     </div>
   );

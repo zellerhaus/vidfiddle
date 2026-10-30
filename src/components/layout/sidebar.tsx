@@ -190,14 +190,12 @@ export function Sidebar() {
         )}
       >
         {!collapsed && (
-          <a
-            href="https://github.com/zellerhaus/vidfiddle"
-            target="_blank"
-            rel="noreferrer"
+          <Link
+            href="/settings/about"
             className="block border-2 border-sidebar-border p-3 label-chrome text-[11px] text-sidebar-foreground hover:border-white hover:text-white"
           >
-            Vidfiddle · MIT · GitHub
-          </a>
+            Vidfiddle · MIT · Credits
+          </Link>
         )}
 
         {collapsed ? (
