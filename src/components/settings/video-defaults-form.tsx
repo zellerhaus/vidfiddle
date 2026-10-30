@@ -299,6 +299,15 @@ export function VideoDefaultsForm() {
       {defaults.apiMethod === "local" && (
         <>
           <div className="space-y-2">
+            <Label>Visual style</Label>
+            <StylePicker
+              value={defaults.visualStyle === "FullScreenTemplate" ? "" : defaults.visualStyle ?? ""}
+              onChange={(visualStyle) =>
+                setDefaults((prev) => ({ ...prev, visualStyle: visualStyle || undefined }))
+              }
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="local-voice-provider">Voice</Label>
             <div className="grid gap-2 md:grid-cols-[180px_1fr]">
               <Select
@@ -324,15 +333,6 @@ export function VideoDefaultsForm() {
                 }
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Visual style</Label>
-            <StylePicker
-              value={defaults.visualStyle === "FullScreenTemplate" ? "" : defaults.visualStyle ?? ""}
-              onChange={(visualStyle) =>
-                setDefaults((prev) => ({ ...prev, visualStyle: visualStyle || undefined }))
-              }
-            />
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">

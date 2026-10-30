@@ -336,6 +336,16 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
 
           {apiMethod === "local" && (
             <>
+              <div>
+                <Label className="text-base font-medium">Visual style</Label>
+                <p className="text-sm text-muted-foreground mb-3">
+                  The look of every scene. Hover a preset to see its prompt.
+                </p>
+                <StylePicker
+                  value={visualStyle === "FullScreenTemplate" ? "" : visualStyle}
+                  onChange={setVisualStyle}
+                />
+              </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
                   <Label>Voice</Label>
@@ -372,16 +382,6 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
                 {!elevenLabsConfigured && (
                   <p className="text-xs text-muted-foreground">Add ELEVENLABS_API_KEY to read scripts with ElevenLabs voices.</p>
                 )}
-              </div>
-              <div>
-                <Label className="text-base font-medium">Visual style</Label>
-                <p className="text-sm text-muted-foreground mb-3">
-                  The look of every scene. Hover a preset to see its prompt.
-                </p>
-                <StylePicker
-                  value={visualStyle === "FullScreenTemplate" ? "" : visualStyle}
-                  onChange={setVisualStyle}
-                />
               </div>
               <div>
                 <Label className="text-base font-medium">Pacing</Label>
