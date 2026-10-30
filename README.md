@@ -2,6 +2,9 @@
   <img src="docs/media/hero.gif" alt="Vidfiddle turns blog posts into short videos in eight art styles, waits for your approval, then schedules them" width="720">
 </p>
 
+
+
+
 <!-- Launch video: edit this file on github.com and drag the launch MP4 here. GitHub turns it into an inline player. -->
 
 <h1 align="center">Vidfiddle</h1>
