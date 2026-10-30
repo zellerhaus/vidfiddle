@@ -3,6 +3,7 @@ import { StatsCards, RecentActivity, QuickActions, ProcessingActions, ReadyToSch
 import { and, desc, eq, inArray, isNotNull } from "drizzle-orm";
 import { db } from "@/db";
 import { blog_posts, generation_queue, scheduled_posts, videos } from "@/db/schema";
+import { isCreatifyConfigured } from "@/lib/creatify";
 import type { VideoWithPost } from "@/lib/supabase/types";
 
 async function getDashboardData() {
@@ -89,7 +90,7 @@ export default async function DashboardPage() {
       />
       <div className="flex-1 overflow-auto p-12">
         <div className="space-y-8">
-          <CreatifyCredits />
+          {isCreatifyConfigured() && <CreatifyCredits />}
           <ReadyToSchedule count={readyToSchedule} />
           <StatsCards
             pendingContent={stats.pendingContent}

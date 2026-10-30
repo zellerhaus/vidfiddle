@@ -5,7 +5,7 @@ export async function GET() {
   try {
     if (!isPublerConfigured()) {
       return NextResponse.json(
-        { error: "Publer is not configured. Add PUBLER_API_KEY and PUBLER_WORKSPACE_ID to .env.local" },
+        { error: "Publer is not configured. Add PUBLER_API_KEY and PUBLER_WORKSPACE_ID to .env" },
         { status: 400 }
       );
     }

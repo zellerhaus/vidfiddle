@@ -5,7 +5,7 @@ export async function GET() {
   try {
     if (!isCreatifyConfigured()) {
       return NextResponse.json(
-        { error: "Creatify is not configured. Add CREATIFY_API_ID and CREATIFY_API_KEY to .env.local" },
+        { error: "Creatify is not configured. Add CREATIFY_API_ID and CREATIFY_API_KEY to .env" },
         { status: 400 }
       );
     }
