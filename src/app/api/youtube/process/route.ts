@@ -3,7 +3,11 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { youtube_sources } from "@/db/schema";
 import { extractYouTubeVideoId } from "@/lib/youtube";
-import { isSubmagicConfigured, createMagicClips } from "@/lib/submagic";
+import {
+  isSubmagicConfigured,
+  createMagicClips,
+  submagicWebhookToken,
+} from "@/lib/submagic";
 import type { CaptionStylePreset, YouTubeClipPreferences } from "@/lib/supabase/types";
 
 /**
@@ -61,9 +65,11 @@ export async function POST(request: NextRequest) {
     if (useSubmagic) {
       // Submit to Submagic Magic Clips API
       const prefs = clipPreferences || { targetDuration: 45, maxClips: 5 };
-      // Build webhook URL from the request origin
+      // Build webhook URL from the request origin, with a token the webhook checks
       const origin = request.headers.get("origin") || request.headers.get("referer")?.replace(/\/[^/]*$/, "") || "";
-      const webhookUrl = origin ? `${origin}/api/webhooks/submagic` : undefined;
+      const token = submagicWebhookToken(videoId);
+      const webhookUrl =
+        origin && token ? `${origin}/api/webhooks/submagic?token=${token}` : undefined;
 
       const submagicProject = await createMagicClips({
         title: `yt-${videoId}`,

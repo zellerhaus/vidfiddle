@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { blog_posts, videos, youtube_clips, youtube_sources } from "@/db/schema";
 import { generateMultipleCaptions, isClaudeConfigured } from "@/lib/claude";
 import type { Platform } from "@/lib/supabase/types";
-import type { SubmagicClip } from "@/lib/submagic";
+import { verifySubmagicWebhookToken, type SubmagicClip } from "@/lib/submagic";
 
 const DEFAULT_PLATFORMS: Platform[] = [
   "instagram",
@@ -18,6 +18,7 @@ const DEFAULT_PLATFORMS: Platform[] = [
 /**
  * Submagic webhook — called when a Magic Clips project completes.
  * Downloads clips, stores them, and creates approval queue entries.
+ * Requires the token that /api/youtube/process put in the webhook URL.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -55,6 +56,14 @@ export async function POST(request: NextRequest) {
         { error: "Source not found" },
         { status: 404 }
       );
+    }
+
+    const token = request.nextUrl.searchParams.get("token");
+    if (!verifySubmagicWebhookToken(source.youtube_video_id, token)) {
+      console.error(
+        `[submagic-webhook] Rejected project ${projectId}: missing or invalid token`
+      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Already processed (idempotency)
