@@ -1,0 +1,58 @@
+name: Bug report
+description: Something broke or did the wrong thing.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Add the feed https://...
+        2. Convert the first post with the local engine, felt diorama, fast pacing
+        3. ...
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: How you run it
+      options:
+        - docker compose
+        - Without Docker (npm)
+        - Something else (say below)
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where it went wrong
+      multiple: true
+      options:
+        - Feeds or content import
+        - Script or captions
+        - Local engine render
+        - Creatify
+        - YouTube clips
+        - Approval queue
+        - Scheduling or publishing (Publer)
+        - Scheduling or publishing (LightPost)
+        - Storage (local or S3)
+        - Something else
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The release tag, or the commit you're on (`git rev-parse --short HEAD`).
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: The worker and app logs around the failure (`docker compose logs worker app`). Remove any keys first.
+      render: text

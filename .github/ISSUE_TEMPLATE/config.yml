@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Question or idea
+    url: https://github.com/zellerhaus/vidfiddle/discussions
+    about: Setup help, show-and-tell, and ideas that aren't a bug yet.
+  - name: Security problem
+    url: https://github.com/zellerhaus/vidfiddle/security/advisories/new
+    about: Report it privately. Please don't open a public issue.
