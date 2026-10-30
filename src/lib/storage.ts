@@ -1,7 +1,8 @@
-import { createWriteStream } from "node:fs";
-import { mkdir, rename, rm } from "node:fs/promises";
+import { createWriteStream, type ReadStream } from "node:fs";
+import { mkdir, rename, rm, stat } from "node:fs/promises";
 import path from "node:path";
 import { Readable } from "node:stream";
+import { buffer } from "node:stream/consumers";
 import { pipeline } from "node:stream/promises";
 import type { ReadableStream as NodeReadableStream } from "node:stream/web";
 import { AwsClient } from "aws4fetch";
@@ -213,19 +214,34 @@ export async function saveFile(
     const endpoint = config.endpoint.replace(/\/+$/, "");
     const objectUrl = `${endpoint}/${config.bucket}/${encodedKey}`;
 
-    const body: BodyInit = Buffer.isBuffer(data)
-      ? new Uint8Array(data)
-      : (Readable.toWeb(data) as unknown as BodyInit);
+    // S3 rejects chunked uploads (411 MissingContentLength), so the size must be known up front.
+    // File streams (renders, YouTube downloads) are sized with stat and still streamed; any other
+    // stream is buffered first.
+    const filePath = Buffer.isBuffer(data) ? null : (data as ReadStream).path;
+    let body: BodyInit;
+    let contentLength: number;
+    if (Buffer.isBuffer(data)) {
+      body = new Uint8Array(data);
+      contentLength = data.length;
+    } else if (typeof filePath === "string") {
+      contentLength = (await stat(filePath)).size;
+      body = Readable.toWeb(data) as unknown as BodyInit;
+    } else {
+      const buffered = await buffer(data);
+      body = new Uint8Array(buffered);
+      contentLength = buffered.length;
+    }
 
     const requestInit: RequestInit & { duplex?: "half" } = {
       method: "PUT",
       headers: {
         "Content-Type": contentType,
+        "Content-Length": String(contentLength),
       },
       body,
     };
 
-    if (!Buffer.isBuffer(data)) {
+    if (typeof filePath === "string") {
       requestInit.duplex = "half";
     }
 

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { createReadStream } from "node:fs";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
@@ -258,4 +259,43 @@ test("s3 driver signs PUT uploads", async () => {
   assert.equal(capturedUrl, "https://s3.example.com/video-bucket/generated/signed-upload.mp4");
   assert.equal(capturedMethod, "PUT");
   assert.ok(capturedAuthorization);
+});
+
+test("s3 driver sends Content-Length when uploading a file stream", async () => {
+  // S3-compatible stores reject chunked PUTs with 411 MissingContentLength.
+  const dir = await mkdtemp(path.join(os.tmpdir(), "vidfiddle-s3-stream-"));
+  const file = path.join(dir, "render.mp4");
+  await writeFile(file, "rendered-video-bytes");
+  let contentLength: string | null = null;
+  let uploaded = "";
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (async (input: URL | RequestInfo, init?: RequestInit): Promise<Response> => {
+    const request = input instanceof Request ? input : new Request(input, init);
+    contentLength = request.headers.get("content-length");
+    uploaded = await request.text();
+    return new Response(null, { status: 200 });
+  }) as typeof fetch;
+
+  try {
+    await withStorageEnv(
+      {
+        STORAGE_DRIVER: "s3",
+        S3_ENDPOINT: "https://s3.example.com",
+        S3_REGION: "auto",
+        S3_BUCKET: "video-bucket",
+        S3_ACCESS_KEY_ID: "access-key",
+        S3_SECRET_ACCESS_KEY: "secret-key",
+        S3_PUBLIC_URL: "https://cdn.example.com/video-bucket",
+      },
+      async () => {
+        await saveFile("generated/streamed.mp4", createReadStream(file), "video/mp4");
+      }
+    );
+  } finally {
+    globalThis.fetch = originalFetch;
+    await rm(dir, { recursive: true, force: true });
+  }
+
+  assert.equal(contentLength, String("rendered-video-bytes".length));
+  assert.equal(uploaded, "rendered-video-bytes");
 });
