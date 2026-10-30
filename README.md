@@ -1,10 +1,9 @@
 
 
+https://github.com/user-attachments/assets/4f635762-c7fe-4a02-8383-d752b5297288
 
 
-<!-- Launch video: edit this file on github.com and drag the launch MP4 here. GitHub turns it into an inline player. -->
-
-<h1 align="center">Vidfiddle</h1>
+<h1 align="center">Vidfiddle - RSS Feed to Video & Socials</h1>
 
 <p align="center">
   <b>Your blog already wrote your next 100 videos.</b><br>
