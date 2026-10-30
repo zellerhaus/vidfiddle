@@ -86,7 +86,8 @@ function parseRss2(channel: any): ParsedFeed {
         title: getTextValue(item.title) || "Untitled",
         link: getTextValue(item.link) || "",
         content: contentEncoded,
-        contentSnippet: descText.slice(0, 200),
+        // Clean before truncating: cutting raw HTML can leave half a tag behind.
+        contentSnippet: htmlToText(descText).slice(0, 200),
         pubDate: getTextValue(item.pubDate) || undefined,
       };
     });
@@ -117,7 +118,7 @@ function parseAtom(feed: any): ParsedFeed {
       title: getTextValue(entry.title) || "Untitled",
       link: entryHref || "",
       content: getTextValue(entry.content) || getTextValue(entry.summary) || "",
-      contentSnippet: (getTextValue(entry.summary) || "").slice(0, 200),
+      contentSnippet: htmlToText(getTextValue(entry.summary) || "").slice(0, 200),
       pubDate: getTextValue(entry.published) || getTextValue(entry.updated) || undefined,
     };
   });
