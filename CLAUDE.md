@@ -78,6 +78,11 @@ word starts, `shotLengths` in the pipeline) and `music` (auto/a mood/none) with 
 Build options with `buildLocalEngineOptions`; it normalizes loose request and settings values.
 
 ### Engine audio
+Voices: `localEngineProviders` (src/lib/video-engine/providers/index.ts) builds the stage providers;
+OpenAI does planning, images and word timings, and the voice is OpenAI or ElevenLabs
+(`voiceProvider`). `VoiceProvider.speak` gets the neighboring scenes as context, which ElevenLabs
+sends as previous_text / next_text so per-scene requests still sound continuous.
+
 Every render ends in `finishAudio` (src/lib/video-engine/ffmpeg.ts): narration leveled to about
 -14 LUFS (raw TTS is ~-30), plus an optional music bed about 15 dB under the voice with sidechain
 ducking. Music providers live in `src/lib/video-engine/music.ts`: a mood-filed library

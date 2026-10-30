@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
       avatarId,
       pacing,
       musicMood,
+      voiceProvider,
     } = body as {
       blogPostId: string;
       contentSegmentId?: string;
@@ -48,6 +49,7 @@ export async function POST(request: NextRequest) {
       avatarId?: string;
       pacing?: string;
       musicMood?: string;
+      voiceProvider?: string;
     };
 
     if (!blogPostId || !script) {
@@ -109,6 +111,7 @@ export async function POST(request: NextRequest) {
             style: "stock_footage",
             style_options: buildLocalEngineOptions({
               aspectRatio,
+              voiceProvider,
               voice: accentId,
               visualStyle,
               pacing,

@@ -59,6 +59,7 @@ export async function GET() {
       capabilities: {
         creatifyConfigured: isCreatifyConfigured(),
         localEngineConfigured: isLocalEngineConfigured(),
+        elevenLabsConfigured: !!process.env.ELEVENLABS_API_KEY,
         preferredApiMethod: fallback.apiMethod,
       },
     });
@@ -148,6 +149,7 @@ export async function PUT(request: NextRequest) {
       targetDuration: body.targetDuration,
       scriptStyle: body.scriptStyle,
       scriptTone: body.scriptTone,
+      voiceProvider: body.voiceProvider === "elevenlabs" ? "elevenlabs" : "openai",
       pacing: body.pacing ?? "medium",
       musicMood: body.musicMood ?? "auto",
     };

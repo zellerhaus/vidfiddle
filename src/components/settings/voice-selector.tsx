@@ -34,7 +34,7 @@ interface VoiceSelectorProps {
   onChange: (voiceId: string) => void;
   disabled?: boolean;
   className?: string;
-  source?: "creatify" | "local";
+  source?: "creatify" | "local" | "elevenlabs";
 }
 
 export function VoiceSelector({
@@ -71,7 +71,7 @@ export function VoiceSelector({
       try {
         setIsLoading(true);
         setError(null);
-        const response = await fetch("/api/creatify/voices");
+        const response = await fetch(source === "elevenlabs" ? "/api/voices/elevenlabs" : "/api/creatify/voices");
 
         if (!response.ok) {
           const errorData = await response.json();

@@ -90,6 +90,7 @@ const DEFAULT_VALUES: VideoDefaults = {
 
 type VideoDefaultsResponse = VideoDefaults & {
   capabilities?: {
+    elevenLabsConfigured?: boolean;
     preferredApiMethod?: CreatifyApiMethod;
   };
 };
@@ -98,6 +99,7 @@ export function VideoDefaultsForm() {
   const [defaults, setDefaults] = React.useState<VideoDefaults>(DEFAULT_VALUES);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isSaving, setIsSaving] = React.useState(false);
+  const [elevenLabsConfigured, setElevenLabsConfigured] = React.useState(false);
 
   // Load current defaults on mount
   React.useEffect(() => {
@@ -112,6 +114,7 @@ export function VideoDefaultsForm() {
         if (!data.apiMethod) {
           data.apiMethod = data.capabilities?.preferredApiMethod || "ai_shorts";
         }
+        setElevenLabsConfigured(data.capabilities?.elevenLabsConfigured ?? false);
         setDefaults(data);
       } catch (error) {
         console.error("Error loading defaults:", error);
@@ -296,14 +299,31 @@ export function VideoDefaultsForm() {
       {defaults.apiMethod === "local" && (
         <>
           <div className="space-y-2">
-            <Label>OpenAI Voice</Label>
-            <VoiceSelector
-              source="local"
-              value={defaults.voiceId ?? undefined}
-              onChange={(voiceId) =>
-                setDefaults((prev) => ({ ...prev, voiceId }))
-              }
-            />
+            <Label htmlFor="local-voice-provider">Voice</Label>
+            <div className="grid gap-2 md:grid-cols-[180px_1fr]">
+              <Select
+                value={defaults.voiceProvider === "elevenlabs" ? "elevenlabs" : "openai"}
+                onValueChange={(voiceProvider) => setDefaults((prev) => ({ ...prev, voiceProvider, voiceId: null }))}
+              >
+                <SelectTrigger id="local-voice-provider" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="openai">OpenAI</SelectItem>
+                  <SelectItem value="elevenlabs" disabled={!elevenLabsConfigured}>
+                    ElevenLabs{elevenLabsConfigured ? "" : " (needs a key)"}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <VoiceSelector
+                key={defaults.voiceProvider ?? "openai"}
+                source={defaults.voiceProvider === "elevenlabs" ? "elevenlabs" : "local"}
+                value={defaults.voiceId ?? undefined}
+                onChange={(voiceId) =>
+                  setDefaults((prev) => ({ ...prev, voiceId }))
+                }
+              />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="local-visual-style">Visual style</Label>

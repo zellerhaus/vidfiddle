@@ -204,7 +204,12 @@ export async function renderVideo(opts: RenderOptions): Promise<RenderResult> {
   const file = (i: number, ext: string) => join(work, `scene-${String(i + 1).padStart(2, "0")}.${ext}`);
   await pool(plan.scenes, opts.concurrency ?? 4, async (scene, i) => {
     await Promise.all([
-      produce(file(i, "mp3"), (tmp) => providers.voice.speak(scene.narration, tmp)),
+      produce(file(i, "mp3"), (tmp) =>
+        providers.voice.speak(scene.narration, tmp, {
+          previous: plan.scenes[i - 1]?.narration,
+          next: plan.scenes[i + 1]?.narration,
+        })
+      ),
       produce(file(i, "png"), async (tmp) => {
         try {
           await providers.visuals.still(styledPrompt(plan.style, scene.visual), aspect, tmp);

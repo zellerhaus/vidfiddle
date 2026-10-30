@@ -4,7 +4,10 @@
  *   npx tsx scripts/render-video.ts --script post.txt --out video.mp4 [--aspect 9x16]
  *     [--voice coral] [--style "flat paper-cut illustration"] [--work .renders/post] [--no-captions]
  *     [--pacing slow|medium|fast] [--music auto|upbeat|calm|inspiring|dramatic|playful|none]
- *     [--music-volume 0.3]
+ *     [--music-volume 0.3] [--voice-provider openai|elevenlabs]
+ *
+ * --voice-provider elevenlabs reads with --voice <ElevenLabs voice ID> (or ELEVENLABS_VOICE_ID)
+ * and needs ELEVENLABS_API_KEY.
  *
  * Music comes from MUSIC_DIR / assets/music, or ElevenLabs when ELEVENLABS_API_KEY is set.
  *
@@ -18,7 +21,7 @@ import { parseArgs } from "node:util";
 import { toMusicChoice, toPacing } from "../src/lib/local-engine";
 import { musicFromEnv } from "../src/lib/video-engine/music";
 import { renderVideo } from "../src/lib/video-engine/pipeline";
-import { openAIProviders } from "../src/lib/video-engine/providers/openai";
+import { localEngineProviders } from "../src/lib/video-engine/providers";
 import type { AspectRatio } from "../src/lib/video-engine/types";
 
 const { values } = parseArgs({
@@ -33,6 +36,7 @@ const { values } = parseArgs({
     pacing: { type: "string", default: "medium" },
     music: { type: "string", default: "auto" },
     "music-volume": { type: "string", default: "0.3" },
+    "voice-provider": { type: "string", default: "openai" },
   },
 });
 
@@ -69,12 +73,10 @@ async function main(scriptPath: string, openAIKey: string) {
             mood: toMusicChoice(values.music) as Exclude<ReturnType<typeof toMusicChoice>, "none">,
             volume: Number(values["music-volume"]),
           },
-    providers: openAIProviders({
-      apiKey: openAIKey,
-      voice: values.voice,
-      textModel: process.env.OPENAI_TEXT_MODEL,
-      imageModel: process.env.OPENAI_IMAGE_MODEL,
-    }),
+    providers: localEngineProviders(
+      { voiceProvider: values["voice-provider"] === "elevenlabs" ? "elevenlabs" : "openai", voice: values.voice },
+      { ...process.env, OPENAI_API_KEY: openAIKey }
+    ),
     onProgress: (m) => console.log(`  ${m}`),
   });
 
@@ -84,8 +86,9 @@ async function main(scriptPath: string, openAIKey: string) {
     `\n${result.outFile}: ${result.durationSeconds.toFixed(1)}s, ${result.scenes} scenes, ` +
       `rendered in ${Math.round((Date.now() - started) / 1000)}s`
   );
+  const credits = result.costs.reduce((sum, c) => sum + (c.credits ?? 0), 0);
   console.log(
-    `Cost $${result.costUsd.toFixed(3)} (` +
+    `Cost $${result.costUsd.toFixed(3)}${credits ? ` + ${credits} ElevenLabs credits` : ""} (` +
       [...byStage].map(([stage, usd]) => `${stage} $${usd.toFixed(3)}`).join(", ") +
       "; voice and transcription estimated from duration)"
   );

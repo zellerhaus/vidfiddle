@@ -81,6 +81,7 @@ export function VideoStep({
           visualStyle: styleOptions.visualStyle,
           videoLength: styleOptions.videoLength,
           avatarId: styleOptions.avatarId,
+          voiceProvider: styleOptions.voiceProvider,
           pacing: styleOptions.pacing,
           musicMood: styleOptions.musicMood,
         }),

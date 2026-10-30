@@ -84,6 +84,7 @@ function getInitialState(
       aspectRatio: (opts.aspectRatio as StyleOptions["aspectRatio"]) || "9x16",
       voiceoverVolume: (opts.voiceoverVolume as number) ?? 1.0,
       backgroundMusicVolume: (opts.musicVolume as number) ?? (opts.backgroundMusicVolume as number) ?? 0.3,
+      voiceProvider: (opts.voiceProvider as StyleOptions["voiceProvider"]) || undefined,
       pacing: (opts.pacing as StyleOptions["pacing"]) || undefined,
       musicMood: (opts.music as StyleOptions["musicMood"]) || undefined,
       voiceId:

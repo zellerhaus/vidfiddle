@@ -462,6 +462,7 @@ async function processQueueItem(
         ...(apiMethod === "local"
           ? buildLocalEngineOptions({
               aspectRatio: defaults.aspectRatio,
+              voiceProvider: defaults.voiceProvider,
               voice: defaults.voiceId,
               visualStyle: defaults.visualStyle,
               pacing: defaults.pacing,

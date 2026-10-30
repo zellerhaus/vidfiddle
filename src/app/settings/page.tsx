@@ -50,6 +50,7 @@ async function getSettings() {
 
   return {
     music: { userTracks: userTracks.length, bundledTracks: bundledTracks.length, elevenLabs: elevenLabsMusic },
+    elevenLabs: !!process.env.ELEVENLABS_API_KEY,
     llm: {
       connected: isLLMConfigured(),
       provider: llmProvider,
@@ -104,6 +105,14 @@ function connectionRows(settings: Settings): ConnectionRow[] {
       name: "Local engine",
       description: "Renders videos on your server with OpenAI voice, images and captions.",
       status: settings.localEngine ? { tone: "success", label: "Ready" } : { tone: "secondary", label: "Needs OPENAI_API_KEY" },
+    },
+    {
+      key: "elevenlabs",
+      initials: "11",
+      tile: "bg-white",
+      name: "ElevenLabs (optional)",
+      description: "Voiceover voices from your ElevenLabs account, and music composed per video.",
+      status: settings.elevenLabs ? { tone: "success", label: "Connected" } : { tone: "secondary", label: "Not configured" },
     },
     {
       key: "music",
@@ -163,7 +172,7 @@ export default async function SettingsPage() {
     { name: "LIGHTPOST_URL", set: settings.lightpostConfigured },
     { name: "PUBLER_API_KEY", set: settings.publerConfigured },
     { name: "STORAGE_DRIVER", set: settings.storage === "s3", note: "local (default) or s3" },
-    { name: "ELEVENLABS_API_KEY", set: settings.music.elevenLabs, note: "optional: a fresh music track per video" },
+    { name: "ELEVENLABS_API_KEY", set: settings.elevenLabs, note: "optional: ElevenLabs voices and music" },
     { name: "CREATIFY_API_KEY", set: settings.creatify, note: "optional" },
   ];
 

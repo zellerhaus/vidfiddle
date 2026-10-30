@@ -15,12 +15,15 @@ RSS / URL / YouTube → segments → script → video → review queue → capti
 
 - **Scripts and captions** come from OpenAI or Anthropic (`LLM_PROVIDER`).
 - **Videos** come from one of two engines:
-  - **Local engine (OpenAI):** renders on your server. `gpt-4o-mini-tts` reads the script, `gpt-image`
+  - **Local engine (OpenAI):** renders on your server. `gpt-4o-mini-tts` (or an ElevenLabs voice) reads the script, `gpt-image`
     draws a still for each scene, `whisper-1` times every word, and ffmpeg cuts each still into shots
     with camera moves, burns in word-by-word captions, and mixes music under the voice. About
     **$0.06 for a 30-second video**, billed to your OpenAI account.
     - **Pacing:** slow (a new picture about every 8 seconds), medium (a new shot about every 4) or
       fast (every 2–3). Same cost at every pace.
+    - **Voice:** any of OpenAI's voices, or any voice in your ElevenLabs account when
+      `ELEVENLABS_API_KEY` is set (billed in ElevenLabs credits, about one per character). Each scene
+      is read with its neighbors as context, so the delivery flows across scenes.
     - **Music:** matched to the script's mood, from the starter tracks in `assets/music` plus any
       you drop into `music/` ([how](music/README.md)). Set `ELEVENLABS_API_KEY` to compose a fresh
       track per video instead. Narration is leveled to -14 LUFS, the loudness social apps expect.
@@ -72,7 +75,8 @@ most:
 | `STORAGE_DRIVER`, `S3_*`                 | Keep media on local disk (default) or in an S3-compatible bucket.       |
 | `PUBLER_*` or `PUBLISHER`, `LIGHTPOST_*` | Where scheduled posts go.                                               |
 | `CREATIFY_*`                             | The hosted Creatify engine, if you want it.                             |
-| `MUSIC_DIR`, `ELEVENLABS_API_KEY`        | Your own music folder, or ElevenLabs-composed music per video.          |
+| `ELEVENLABS_API_KEY`                     | ElevenLabs voices for narration, and music composed per video.          |
+| `MUSIC_DIR`, `MUSIC_PROVIDER`            | Your own music folder; `library` keeps it even with an ElevenLabs key.  |
 | `CRON_<JOB>`                             | Change a job's schedule (5-field cron), or turn it `off`.               |
 
 ### Media must be reachable for publishing

@@ -15,7 +15,7 @@ import { publicUrl, saveFile } from "@/lib/storage";
 import type { Platform } from "@/lib/supabase/types";
 import { musicFromEnv } from "@/lib/video-engine/music";
 import { renderVideo } from "@/lib/video-engine/pipeline";
-import { openAIProviders } from "@/lib/video-engine/providers/openai";
+import { localEngineProviders } from "@/lib/video-engine/providers";
 
 // Same platforms check-creatify writes captions for.
 const CAPTION_PLATFORMS: Platform[] = ["instagram", "tiktok", "youtube", "linkedin", "twitter", "facebook"];
@@ -68,12 +68,7 @@ async function renderOne(job: { id: string; script: string; style_options: unkno
       music === "none"
         ? undefined
         : { provider: musicFromEnv(job.id), mood: music, volume: options?.musicVolume ?? 0.3 },
-    providers: openAIProviders({
-      apiKey: process.env.OPENAI_API_KEY!,
-      voice: options?.voice,
-      textModel: process.env.OPENAI_TEXT_MODEL,
-      imageModel: process.env.OPENAI_IMAGE_MODEL,
-    }),
+    providers: localEngineProviders(options),
     onProgress: (message) => console.log(`[render] ${job.id}: ${message}`),
   });
 
@@ -103,11 +98,13 @@ async function renderOne(job: { id: string; script: string; style_options: unkno
     })
     .where(eq(videos.id, job.id));
 
+  const credits = result.costs.reduce((sum, c) => sum + (c.credits ?? 0), 0);
   // Intermediate files are only kept to resume a failed render.
   await rm(workDir, { recursive: true, force: true });
   console.log(
     `[render] ${job.id}: done in ${Math.round((Date.now() - started) / 1000)}s, ` +
-      `${result.durationSeconds.toFixed(1)}s video, $${result.costUsd.toFixed(3)}`
+      `${result.durationSeconds.toFixed(1)}s video, $${result.costUsd.toFixed(3)}` +
+      (credits ? ` + ${credits} ElevenLabs credits` : "")
   );
 }
 

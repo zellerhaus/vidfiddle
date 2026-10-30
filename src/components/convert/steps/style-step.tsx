@@ -23,7 +23,7 @@ import {
   type CreatifyStyle,
   type CreatifyAspectRatio,
 } from "@/lib/creatify";
-import { MUSIC_OPTIONS, PACING_OPTIONS, type MusicChoice } from "@/lib/local-engine";
+import { MUSIC_OPTIONS, PACING_OPTIONS, type MusicChoice, type VoiceProviderName } from "@/lib/local-engine";
 import type { Pacing } from "@/lib/video-engine/types";
 import { VoiceSelector } from "@/components/settings/voice-selector";
 import { AvatarSelector } from "@/components/settings/avatar-selector";
@@ -39,6 +39,8 @@ export interface StyleOptions {
   voiceoverVolume: number;
   backgroundMusicVolume: number;
   voiceId: string | null;
+  /** Local engine only: who reads the script. */
+  voiceProvider?: VoiceProviderName;
   /** Local engine only. */
   pacing?: Pacing;
   /** Local engine only. */
@@ -66,6 +68,7 @@ const API_METHODS: { value: CreatifyApiMethod; label: string; description: strin
 type VideoDefaultsResponse = VideoDefaults & {
   capabilities?: {
     creatifyConfigured?: boolean;
+    elevenLabsConfigured?: boolean;
     preferredApiMethod?: CreatifyApiMethod;
   };
 };
@@ -80,6 +83,8 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
   const [voiceoverVolume, setVoiceoverVolume] = useState(0.8);
   const [backgroundMusicVolume, setBackgroundMusicVolume] = useState(0.3);
   const [voiceId, setVoiceId] = useState<string | null>(null);
+  const [voiceProvider, setVoiceProvider] = useState<VoiceProviderName>("openai");
+  const [elevenLabsConfigured, setElevenLabsConfigured] = useState(false);
   const [pacing, setPacing] = useState<Pacing>("medium");
   const [musicMood, setMusicMood] = useState<MusicChoice>("auto");
   const [isLoadingDefaults, setIsLoadingDefaults] = useState(true);
@@ -94,6 +99,11 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
         if (response.ok) {
           const defaults: VideoDefaultsResponse = await response.json();
           setCreatifyConfigured(defaults.capabilities?.creatifyConfigured ?? null);
+          const hasElevenLabs = defaults.capabilities?.elevenLabsConfigured ?? false;
+          setElevenLabsConfigured(hasElevenLabs);
+          if (defaults.voiceProvider === "elevenlabs" && hasElevenLabs) {
+            setVoiceProvider("elevenlabs");
+          }
           // API method
           if (defaults.apiMethod) {
             setApiMethod(defaults.apiMethod);
@@ -166,6 +176,7 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
       voiceoverVolume,
       backgroundMusicVolume,
       voiceId,
+      voiceProvider,
       pacing,
       musicMood,
     });
@@ -185,7 +196,9 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
           <CardDescription>
             Select the generation method, visual style, and format for your video.
             {isLocal
-              ? " Estimated cost: about $0.06 per 30-second video."
+              ? voiceProvider === "elevenlabs"
+                ? " Estimated cost: about $0.05 per 30-second video, plus ElevenLabs credits for the voice (about one per character)."
+                : " Estimated cost: about $0.06 per 30-second video."
               : ` Estimated cost: ~${estimatedCredits} credits (${estimatedSeconds}s video)`}
           </CardDescription>
         </CardHeader>
@@ -324,13 +337,41 @@ export function StyleStep({ script, onComplete, onBack }: StyleStepProps) {
           {apiMethod === "local" && (
             <>
               <div className="space-y-2">
-                <Label>OpenAI Voice</Label>
+                <div className="flex items-center justify-between gap-3">
+                  <Label>Voice</Label>
+                  <div className="inline-flex border-2 border-black bg-white p-[2px]" role="radiogroup" aria-label="Voice provider">
+                    {(["openai", "elevenlabs"] as const).map((provider) => (
+                      <button
+                        key={provider}
+                        role="radio"
+                        aria-checked={voiceProvider === provider}
+                        disabled={provider === "elevenlabs" && !elevenLabsConfigured}
+                        title={provider === "elevenlabs" && !elevenLabsConfigured ? "Add ELEVENLABS_API_KEY to use ElevenLabs voices" : undefined}
+                        onClick={() => {
+                          if (provider === voiceProvider) return;
+                          setVoiceProvider(provider);
+                          setVoiceId(null);
+                        }}
+                        className={cn(
+                          "label-chrome px-3 py-1 text-[11px] disabled:cursor-not-allowed disabled:opacity-40",
+                          voiceProvider === provider ? "bg-primary" : "hover:bg-accent"
+                        )}
+                      >
+                        {provider === "openai" ? "OpenAI" : "ElevenLabs"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
                 <VoiceSelector
-                  source="local"
+                  key={voiceProvider}
+                  source={voiceProvider === "elevenlabs" ? "elevenlabs" : "local"}
                   value={voiceId || undefined}
                   onChange={(id) => setVoiceId(id)}
                   disabled={isLoadingDefaults}
                 />
+                {!elevenLabsConfigured && (
+                  <p className="text-xs text-muted-foreground">Add ELEVENLABS_API_KEY to read scripts with ElevenLabs voices.</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="local-visual-style">Visual style</Label>

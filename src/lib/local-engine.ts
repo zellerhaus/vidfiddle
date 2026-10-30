@@ -8,11 +8,20 @@ import { MOODS, type AspectRatio, type Mood, type Pacing } from "@/lib/video-eng
 /** "auto" lets the planner pick the mood; "none" renders without music. */
 export type MusicChoice = Mood | "auto" | "none";
 
+export type VoiceProviderName = "openai" | "elevenlabs";
+
+/** ElevenLabs voice IDs are short alphanumeric strings; anything else never reaches a URL. */
+export function isElevenLabsVoiceId(value: unknown): value is string {
+  return typeof value === "string" && /^[A-Za-z0-9]{8,40}$/.test(value);
+}
+
 // A type alias, not an interface, so it satisfies the JSON column type when inserted.
 export type LocalEngineOptions = {
   apiVersion: "local";
   aspectRatio: AspectRatio;
-  /** An OpenAI voice from OPENAI_VOICES. */
+  /** Who reads the script. Missing means "openai". */
+  voiceProvider?: VoiceProviderName;
+  /** An OpenAI voice from OPENAI_VOICES, or an ElevenLabs voice ID. */
   voice?: string;
   /** Art direction applied to every scene image. Omit to let the planner choose. */
   visualStyle?: string;
@@ -47,16 +56,19 @@ export function toMusicChoice(value: string | null | undefined): MusicChoice {
 /** Style options for a local-engine video, from loosely typed request or settings values. */
 export function buildLocalEngineOptions(input: {
   aspectRatio?: string;
+  voiceProvider?: string | null;
   voice?: string | null;
   visualStyle?: string | null;
   pacing?: string | null;
   music?: string | null;
   musicVolume?: number | null;
 }): LocalEngineOptions {
+  const elevenLabs = input.voiceProvider === "elevenlabs";
   return {
     apiVersion: "local",
     aspectRatio: toAspectRatio(input.aspectRatio),
-    voice: toOpenAIVoice(input.voice),
+    voiceProvider: elevenLabs ? "elevenlabs" : "openai",
+    voice: elevenLabs ? (isElevenLabsVoiceId(input.voice) ? input.voice : undefined) : toOpenAIVoice(input.voice),
     visualStyle: input.visualStyle && input.visualStyle !== "FullScreenTemplate" ? input.visualStyle : undefined,
     pacing: toPacing(input.pacing),
     music: toMusicChoice(input.music),

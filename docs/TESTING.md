@@ -50,10 +50,13 @@ Upstream LightPost can't post video yet. Until it can, run LightPost from a buil
 Set `LLM_PROVIDER=anthropic` and `ANTHROPIC_API_KEY`, then restart. Settings names Anthropic, and
 the Script step writes scripts. Rendering still needs `OPENAI_API_KEY`.
 
-### ElevenLabs music
-Set `ELEVENLABS_API_KEY`, then restart. Settings shows Music as **ElevenLabs**. Each new render
-composes its own instrumental in the chosen mood. With an invalid key, renders still finish, using
-library tracks.
+### ElevenLabs voices and music
+Set `ELEVENLABS_API_KEY`, then restart. Settings shows ElevenLabs as **Connected**.
+- **Voice:** on the Style step, switch Voice to ElevenLabs and pick a voice from your account. The
+  render reads every scene in that voice with smooth delivery across scenes, and the worker log
+  shows the ElevenLabs credits used.
+- **Music:** without `MUSIC_PROVIDER=library`, Music shows **ElevenLabs** and each render composes
+  its own instrumental. With an invalid key, renders still finish, using library tracks.
 
 ### Creatify engines (paid)
 Set `CREATIFY_API_ID` and `CREATIFY_API_KEY`. AI Shorts, Link to Video and AI Avatar become

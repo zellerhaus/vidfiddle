@@ -49,6 +49,8 @@ export interface CostLine {
   stage: "plan" | "voice" | "visual" | "transcribe";
   model: string;
   usd: number;
+  /** Provider credits used, for services that bill in credits rather than dollars (ElevenLabs). */
+  credits?: number;
   /** True when the provider doesn't report usage and the cost is computed from duration. */
   estimated?: boolean;
 }
@@ -58,8 +60,11 @@ export interface ScenePlanner {
 }
 
 export interface VoiceProvider {
-  /** Writes speech for `text` to `outFile` (mp3). */
-  speak(text: string, outFile: string): Promise<void>;
+  /**
+   * Writes speech for `text` to `outFile` (mp3). `context` is the neighboring scenes' narration;
+   * providers that support it use it so each scene's delivery flows from the last.
+   */
+  speak(text: string, outFile: string, context?: { previous?: string; next?: string }): Promise<void>;
 }
 
 export interface VisualProvider {
