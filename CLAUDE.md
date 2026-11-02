@@ -8,7 +8,9 @@ social media. See README.md for what it does and how to run it.
 - **Framework:** Next.js 16 (App Router), React 19, TypeScript
 - **Database:** PostgreSQL through Drizzle ORM (`src/db`)
 - **Styling:** Tailwind CSS 4 + shadcn/ui primitives restyled as BlockFrame (see Design below), Lucide icons
-- **Deployment:** docker compose (`app`, `worker`, `postgres`)
+- **Deployment:** docker compose (`app`, `worker`, `postgres`) with the published image
+  `ghcr.io/zellerhaus/vidfiddle` (built by `.github/workflows/image.yml` on each release), or one
+  container running `npm run start:all`
 - **APIs:** OpenAI or Anthropic (text), OpenAI (local video engine), Creatify (optional hosted video),
   Publer, Postiz, TryPost or LightPost (publishing)
 
@@ -17,6 +19,7 @@ social media. See README.md for what it does and how to run it.
 ```bash
 npm run dev          # web app (localhost:3000)
 npm run worker       # worker: migrations, cron schedule, local renders
+npm run start:all    # worker, then the app once migrations ran (single-container hosts)
 npm test             # node:test via tsx (TEST_DATABASE_URL enables the DB-backed test)
 npm run lint
 npx tsc --noEmit
