@@ -29,7 +29,9 @@ https://github.com/user-attachments/assets/4f635762-c7fe-4a02-8383-d752b5297288
 
 Feed it an RSS feed or a URL. It splits each post into a few video-sized ideas and writes
 a 30–60 second script for each in your brand voice. Then it renders the videos, writes a caption per
-platform, and queues everything for review. Nothing posts until you approve it.
+platform, and queues everything for review. Nothing posts until you approve it, and then it schedules
+through [Publer](https://publer.com), or the open-source [Postiz](https://postiz.com) and
+[TryPost](https://trypost.it).
 
 ```
 RSS / URL → segments → script → video → review queue → captions → scheduled posts
@@ -92,8 +94,11 @@ NASA and NOAA text is in the public domain; the images, voices and captions are 
       you drop into `music/` ([how](music/README.md)). Set `ELEVENLABS_API_KEY` to compose a fresh
       track per video instead. Narration is leveled to -14 LUFS, the loudness social apps expect.
   - **[Creatify](https://creatify.ai):** hosted stock-footage and AI-avatar videos (paid, optional).
-- **Publishing** goes through [Publer](https://publer.com) (hosted, paid) or
-  [LightPost](https://github.com/brainstormity/LightPost) (self-hosted, free).
+- **Publishing** goes through [Publer](https://publer.com) (hosted, paid), or the open-source
+  [Postiz](https://postiz.com) and [TryPost](https://trypost.it), self-hosted (free) or on their clouds.
+  [LightPost](https://github.com/brainstormity/LightPost) support is
+  [experimental](#publishing-with-lightpost-experimental).
+
 Auto mode runs the whole pipeline on new feed posts daily. To catch up on a backlog, select posts on
 **Content** and create a video from each at once. Either way, videos wait in the review queue for
 approval.
@@ -108,7 +113,7 @@ Vidfiddle is free. You pay the APIs you plug in, on your own accounts.
 | Scripts and captions | Your OpenAI or Anthropic usage: one script and one set of captions per video |
 | ElevenLabs voice or music (optional) | ElevenLabs credits, about one per character of narration |
 | Creatify (optional) | Your Creatify plan |
-| Publishing | Your Publer plan, or nothing with self-hosted LightPost |
+| Publishing | Nothing with self-hosted Postiz or TryPost, or your Publer, Postiz Cloud or TryPost Cloud plan |
 | Server | Any machine that runs Docker. No GPU: images come from the API and ffmpeg runs on the CPU. |
 
 ## Quick start
@@ -149,7 +154,7 @@ most:
 | `PUBLIC_URL`                             | The app's public address. See below.                                    |
 | `APP_PORT`                               | The host port for the web app (default 3000).                           |
 | `STORAGE_DRIVER`, `S3_*`                 | Keep media on local disk (default) or in an S3-compatible bucket.       |
-| `PUBLER_*` or `PUBLISHER`, `LIGHTPOST_*` | Where scheduled posts go.                                               |
+| `PUBLER_*`, `POSTIZ_*`, `TRYPOST_*`      | Where scheduled posts go. See [Publishing](#publishing).                |
 | `CREATIFY_*`                             | The hosted Creatify engine, if you want it.                             |
 | `ELEVENLABS_API_KEY`                     | ElevenLabs voices for narration, and music composed per video.          |
 | `MUSIC_DIR`, `MUSIC_PROVIDER`            | Your own music folder; `library` keeps it even with an ElevenLabs key.  |
@@ -157,8 +162,8 @@ most:
 
 ### Media must be reachable for publishing
 
-Instagram, Facebook, Threads, Publer and LightPost all fetch your video **by URL**. If you schedule
-posts, either:
+Every publisher, and Instagram, Facebook and Threads behind them, fetches your video **by URL**. If you
+schedule posts, either:
 
 - set `PUBLIC_URL` to an address the internet can reach (a domain behind a reverse proxy, or a tunnel
   such as Cloudflare Tunnel), or
@@ -166,13 +171,39 @@ posts, either:
 
 Rendering and reviewing work fine on a private network; only publishing needs this.
 
-### Publishing with LightPost
+### Publishing
 
-LightPost is a small self-hosted scheduler. Video support for Instagram Reels, Facebook Pages, Threads
-and LinkedIn is in progress upstream. Set `PUBLISHER=lightpost`, `LIGHTPOST_URL` and
-`LIGHTPOST_PASSWORD`, and connect your accounts in LightPost. To pick specific accounts, set
-`LIGHTPOST_ACCOUNTS=instagram=<id>,linkedin=<id>`; otherwise every connected account for a platform is
-used.
+Set the keys for one publisher, then connect your social accounts in it. Vidfiddle lists them under
+**Settings** and on the Schedule step.
+
+| Publisher | Settings | Notes |
+| --- | --- | --- |
+| [Publer](https://publer.com) | `PUBLER_API_KEY`, `PUBLER_WORKSPACE_ID` | Hosted, paid. |
+| [Postiz](https://postiz.com) | `POSTIZ_API_KEY`, and `POSTIZ_URL` when self-hosted | `POSTIZ_URL` is the backend URL, usually `https://your-postiz/api`. Leave it unset for Postiz Cloud. |
+| [TryPost](https://trypost.it) | `TRYPOST_API_KEY`, and `TRYPOST_URL` when self-hosted | The key must belong to a workspace admin. Leave `TRYPOST_URL` unset for TryPost Cloud. |
+
+With more than one configured, `PUBLISHER` picks (`publer`, `postiz`, `trypost` or `lightpost`);
+otherwise the first in that order is used. Auto-scheduled posts use the publisher's posting slots
+when it has them (Publer's auto-schedule, a TryPost channel's queue, and in Postiz the first channel's
+next free slot for every channel), and otherwise go out a few minutes later, or a day apart in a bulk
+run.
+
+Postiz refuses to download from private addresses. If it shares a private network with Vidfiddle,
+either give Vidfiddle a public `PUBLIC_URL` or set `DISABLE_SSRF_PROTECTION=true` on Postiz. Postiz
+also caps post creation per hour (`API_LIMIT`, 30 in its compose file); Vidfiddle makes one call per
+video, plus one per extra posting time.
+
+### Publishing with LightPost (experimental)
+
+LightPost is a small self-hosted scheduler. Released LightPost can't post Vidfiddle videos yet: it
+takes video only for YouTube, as a file upload, and this integration sends video by URL to Instagram
+Reels, Facebook Pages, Threads and LinkedIn, which is still in progress upstream. Use Publer, Postiz
+or TryPost to publish today.
+
+To try it against a LightPost build with that video support, set `PUBLISHER=lightpost`,
+`LIGHTPOST_URL` and `LIGHTPOST_PASSWORD`, and connect your accounts in LightPost. To pick specific
+accounts, set `LIGHTPOST_ACCOUNTS=instagram=<id>,linkedin=<id>`; otherwise every connected account for
+a platform is used.
 
 ## Running without Docker
 
@@ -205,8 +236,8 @@ Only if you approve slop. The words come from your own post, and every video wai
 edit the script, ask for changes or reject it. Auto Mode never posts by itself.
 
 **Which platforms can it post to?**
-Through Publer: Instagram, TikTok, YouTube, LinkedIn, X and Facebook. Through LightPost, whatever your
-LightPost install supports. You can also just download the MP4s.
+Through Publer, Postiz or TryPost: Instagram, TikTok, YouTube, LinkedIn, X and Facebook. LightPost
+support is experimental and can't post video yet. You can also just download the MP4s.
 
 **Can I use Claude instead of GPT for the writing?**
 Yes. Set `ANTHROPIC_API_KEY` and `LLM_PROVIDER=anthropic`. The local engine still needs an OpenAI key: it plans

@@ -10,7 +10,7 @@ social media. See README.md for what it does and how to run it.
 - **Styling:** Tailwind CSS 4 + shadcn/ui primitives restyled as BlockFrame (see Design below), Lucide icons
 - **Deployment:** docker compose (`app`, `worker`, `postgres`)
 - **APIs:** OpenAI or Anthropic (text), OpenAI (local video engine), Creatify (optional hosted video),
-  Publer or LightPost (publishing)
+  Publer, Postiz, TryPost or LightPost (publishing)
 
 ## Commands
 
@@ -41,7 +41,7 @@ src/
     ├── llm.ts            # complete(): OpenAI or Anthropic, chosen by LLM_PROVIDER
     ├── claude.ts         # Script and caption generation (provider-neutral despite the name)
     ├── storage.ts        # local disk or S3-compatible storage, public URLs
-    ├── publishers/       # getPublisher(): Publer or LightPost behind one interface
+    ├── publishers/       # getPublisher(): Publer, Postiz, TryPost or LightPost behind one interface
     ├── generation-queue.ts # Queue of posts waiting for a script and video (Auto Mode, bulk create)
     ├── publer.ts, creatify.ts
     └── supabase/types.ts # Shared types; row types are inferred from src/db/schema.ts
@@ -116,7 +116,11 @@ enforces auth except on `/login`, `/api/auth/`, `/media/` (unguessable keys), an
 | Text     | `src/lib/llm.ts`      | Anthropic SDK or OpenAI Responses API over fetch.                        |
 | Creatify | `src/lib/creatify.ts` | Trailing slashes required on endpoints. Check `isCreatifyConfigured()`.  |
 | Publer   | `src/lib/publer.ts`   | Upload media from URL → poll → schedule → poll job. HMAC webhooks.      |
-| LightPost | `src/lib/publishers/lightpost.ts` | Session-cookie login; imports media by public URL; one post per account. |
+| Postiz   | `src/lib/publishers/postiz.ts` | Raw API key header. Upload from URL, then one create call per date (the API takes one date per request). No get-by-id: status comes from a date-range listing. Text is HTML, so captions go as escaped `<p>` lines. |
+| TryPost  | `src/lib/publishers/trypost.ts` | Bearer key. One post per account with `media[].url` (later posts reuse the media id). TikTok needs `privacy_level` from creator info. Retries 409. |
+| LightPost | `src/lib/publishers/lightpost.ts` | Experimental. Session-cookie login; imports media by public URL; one post per account. |
+
+A publisher's `getPost` returns `null` only when the post is truly gone: verify-publer marks those failed, so throw on errors instead.
 
 ## Environment Variables
 

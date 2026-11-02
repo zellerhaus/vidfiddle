@@ -41,6 +41,8 @@ body:
         - Creatify
         - Approval queue
         - Scheduling or publishing (Publer)
+        - Scheduling or publishing (Postiz)
+        - Scheduling or publishing (TryPost)
         - Scheduling or publishing (LightPost)
         - Storage (local or S3)
         - Something else
