@@ -30,8 +30,9 @@ URL should point at `S3_PUBLIC_URL`, and the object should appear in the bucket.
 
 ## Checks that need your accounts
 
-Publishing makes the platforms fetch your video from `PUBLIC_URL`, so that address must be a
-public HTTPS URL. A `localhost` address won't work for these checks.
+Publer and TryPost fetch your video from `PUBLIC_URL`, so for them that address must be a public
+HTTPS URL; a `localhost` address won't work. Postiz gets the video as an upload, so it works with
+Vidfiddle on a private network.
 
 ### Publer
 1. Set `PUBLER_API_KEY` and `PUBLER_WORKSPACE_ID`, then restart. Settings shows Publer as

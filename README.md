@@ -178,14 +178,16 @@ most:
 
 ### Media must be reachable for publishing
 
-Every publisher, and Instagram, Facebook and Threads behind them, fetches your video **by URL**. If you
-schedule posts, either:
+Publer and TryPost fetch your video from Vidfiddle **by URL**. To schedule through them, do one of
+these:
 
 - set `PUBLIC_URL` to an address the internet can reach (a domain behind a reverse proxy, or a tunnel
   such as Cloudflare Tunnel), or
 - use `STORAGE_DRIVER=s3` with a public bucket (Cloudflare R2, Backblaze B2, AWS S3) and `S3_PUBLIC_URL`.
 
-Rendering and reviewing work fine on a private network; only publishing needs this.
+Rendering and reviewing work fine on a private network; only publishing needs this. Postiz is the
+exception: Vidfiddle uploads the video to it as a file, so Vidfiddle can stay private. Instagram,
+Facebook and Threads then fetch the video from Postiz, so Postiz itself needs a public address.
 
 ### Publishing
 
@@ -204,9 +206,8 @@ when it has them (Publer's auto-schedule, a TryPost channel's queue, and in Post
 next free slot for every channel), and otherwise go out a few minutes later, or a day apart in a bulk
 run.
 
-Postiz refuses to download from private addresses. If it shares a private network with Vidfiddle,
-either give Vidfiddle a public `PUBLIC_URL` or set `DISABLE_SSRF_PROTECTION=true` on Postiz. Postiz
-also caps post creation per hour (`API_LIMIT`, 30 in its compose file); Vidfiddle makes one call per
+Vidfiddle uploads each video to Postiz as a file, so Postiz never has to reach Vidfiddle. Postiz
+caps post creation per hour (`API_LIMIT`, 30 in its compose file); Vidfiddle makes one call per
 video, plus one per extra posting time.
 
 ### Publishing with LightPost (experimental)
