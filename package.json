@@ -5,6 +5,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "start:all": "node scripts/start-all.mjs",
     "lint": "eslint",
     "db:generate": "drizzle-kit generate",
     "test": "tsx --test tests/*.test.ts",
