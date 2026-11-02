@@ -229,7 +229,7 @@ export async function POST(request: NextRequest) {
         video_id: video.id,
         platform: post.platform,
         caption: post.caption,
-        // Stores the active publisher's post ID (Publer or LightPost).
+        // Stores the active publisher's post ID (Publer, Postiz, TryPost or LightPost).
         publer_post_id: match?.publisherPostId ?? null,
         status: "scheduled" as const,
       };

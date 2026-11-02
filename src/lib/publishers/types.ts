@@ -1,6 +1,6 @@
 import type { Platform } from "@/lib/supabase/types";
 
-export type PublisherName = "publer" | "lightpost";
+export type PublisherName = "publer" | "postiz" | "trypost" | "lightpost";
 
 export interface PublisherAccount {
   id: string;

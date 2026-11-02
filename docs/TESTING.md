@@ -33,14 +33,6 @@ URL should point at `S3_PUBLIC_URL`, and the object should appear in the bucket.
 Publishing makes the platforms fetch your video from `PUBLIC_URL`, so that address must be a
 public HTTPS URL. A `localhost` address won't work for these checks.
 
-### LightPost
-Upstream LightPost can't post video yet. Until it can, run LightPost from a build with video support.
-
-1. Set `PUBLISHER=lightpost`, `LIGHTPOST_URL` and `LIGHTPOST_PASSWORD`, then restart.
-2. Settings shows LightPost as **Active**, with your connected accounts listed under it.
-3. Schedule a rendered video from the Schedule step. The post appears in LightPost with the video
-   attached, publishes at its time, and the History card shows the platform as posted, with a link.
-
 ### Publer
 1. Set `PUBLER_API_KEY` and `PUBLER_WORKSPACE_ID`, then restart. Settings shows Publer as
    **Active**, with your accounts.
@@ -48,6 +40,32 @@ Upstream LightPost can't post video yet. Until it can, run LightPost from a buil
 3. The verify-publer job updates the History card to posted, with a link.
 4. Give a feed some Auto Mode platforms, then approve an Auto Mode video. It schedules to those
    platforms.
+
+### Postiz
+1. Set `POSTIZ_API_KEY` (and `POSTIZ_URL` for a self-hosted install), then restart. Settings shows
+   Postiz as **Active**, with your channels. Disabled channels and platforms Vidfiddle doesn't post
+   to (Threads, Bluesky and so on) are left out.
+2. Schedule a video to two or more platforms, including YouTube and TikTok if you have them. One
+   post per channel appears in Postiz, all at the first channel's next free posting time, with the
+   video and the caption's line breaks intact (an `&` in the caption stays `&`).
+3. After it publishes, the verify-publer job updates the History card to posted, with a link.
+4. Reschedule a failed post from History. It goes out again at the time you picked.
+
+### TryPost
+1. Set `TRYPOST_API_KEY` (and `TRYPOST_URL` for a self-hosted install), then restart. Settings shows
+   TryPost as **Active**, with your connected channels.
+2. Schedule a video to two or more platforms. One post per channel appears in TryPost: in the
+   channel's queue if it has posting times, otherwise a few minutes out. Instagram posts as a Reel,
+   YouTube as a Short, TikTok publicly (or at the most open level the account allows).
+3. After it publishes, the verify-publer job updates the History card to posted, with a link.
+
+### LightPost (experimental)
+Upstream LightPost can't post video yet. Until it can, run LightPost from a build with video support.
+
+1. Set `PUBLISHER=lightpost`, `LIGHTPOST_URL` and `LIGHTPOST_PASSWORD`, then restart.
+2. Settings shows LightPost as **Active**, with your connected accounts listed under it.
+3. Schedule a rendered video from the Schedule step. The post appears in LightPost with the video
+   attached, publishes at its time, and the History card shows the platform as posted, with a link.
 
 ### Anthropic for scripts
 Set `LLM_PROVIDER=anthropic` and `ANTHROPIC_API_KEY`, then restart. Settings names Anthropic, and

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ExternalLink, CheckCircle, XCircle, ChevronRight, Info, Sparkles, Zap } from "lucide-react";
-import { getPublisher, type PublisherAccount } from "@/lib/publishers";
+import { getPublisher, isPublisherConfigured, type PublisherAccount, type PublisherName } from "@/lib/publishers";
 import { isLLMConfigured, llmProviderName } from "@/lib/llm";
 import { isLocalEngineConfigured } from "@/lib/local-engine";
 import { getStorageDriver } from "@/lib/storage";
@@ -30,7 +30,7 @@ async function getSettings() {
       ? "ANTHROPIC_API_KEY"
       : "ANTHROPIC_API_KEY or OPENAI_API_KEY";
 
-  // The active publisher's accounts (LightPost or Publer, whichever getPublisher picks)
+  // The active publisher's accounts (whichever getPublisher picks)
   const publisher = getPublisher();
   let accounts: PublisherAccount[] = [];
   let accountsError = false;
@@ -59,8 +59,10 @@ async function getSettings() {
     },
     localEngine: isLocalEngineConfigured(),
     creatify: !!process.env.CREATIFY_API_ID && !!process.env.CREATIFY_API_KEY,
-    lightpostConfigured: !!process.env.LIGHTPOST_URL,
+    lightpostConfigured: isPublisherConfigured("lightpost"),
     publerConfigured: !!process.env.PUBLER_API_KEY && !!process.env.PUBLER_WORKSPACE_ID,
+    postizConfigured: isPublisherConfigured("postiz"),
+    trypostConfigured: isPublisherConfigured("trypost"),
     activePublisher: publisher?.name ?? null,
     accounts,
     accountsError,
@@ -80,7 +82,7 @@ interface ConnectionRow {
 }
 
 function connectionRows(settings: Settings): ConnectionRow[] {
-  const publisherStatus = (name: "lightpost" | "publer", configured: boolean): ConnectionRow["status"] => {
+  const publisherStatus = (name: PublisherName, configured: boolean): ConnectionRow["status"] => {
     if (settings.activePublisher === name) {
       if (settings.accountsError) return { tone: "secondary", label: "Can't reach it" };
       const n = settings.accounts.length;
@@ -129,20 +131,36 @@ function connectionRows(settings: Settings): ConnectionRow[] {
           : { tone: "secondary", label: "No tracks" },
     },
     {
-      key: "lightpost",
-      initials: "LP",
-      tile: "bg-pastel-green",
-      name: "LightPost",
-      description: "Self-hosted scheduler that posts to your social accounts.",
-      status: publisherStatus("lightpost", settings.lightpostConfigured),
-    },
-    {
       key: "publer",
       initials: "P",
       tile: "bg-[#ffb3a6]",
       name: "Publer",
       description: "Hosted scheduler that posts to your social accounts.",
       status: publisherStatus("publer", settings.publerConfigured),
+    },
+    {
+      key: "postiz",
+      initials: "Pz",
+      tile: "bg-pastel-blue",
+      name: "Postiz",
+      description: "Open-source scheduler, self-hosted or Postiz Cloud.",
+      status: publisherStatus("postiz", settings.postizConfigured),
+    },
+    {
+      key: "trypost",
+      initials: "TP",
+      tile: "bg-pastel-pink",
+      name: "TryPost",
+      description: "Open-source scheduler, self-hosted or TryPost Cloud.",
+      status: publisherStatus("trypost", settings.trypostConfigured),
+    },
+    {
+      key: "lightpost",
+      initials: "LP",
+      tile: "bg-pastel-green",
+      name: "LightPost (experimental)",
+      description: "Self-hosted scheduler. Released versions can't post video yet.",
+      status: publisherStatus("lightpost", settings.lightpostConfigured),
     },
     {
       key: "creatify",
@@ -168,9 +186,11 @@ export default async function SettingsPage() {
   const rows = connectionRows(settings);
   const envLines: { name: string; set: boolean; note?: string }[] = [
     { name: settings.llm.configEnvVar, set: settings.llm.connected },
-    { name: "PUBLISHER", set: !!settings.activePublisher, note: "lightpost or publer" },
-    { name: "LIGHTPOST_URL", set: settings.lightpostConfigured },
+    { name: "PUBLISHER", set: !!settings.activePublisher, note: "publer, postiz, trypost or lightpost" },
     { name: "PUBLER_API_KEY", set: settings.publerConfigured },
+    { name: "POSTIZ_API_KEY", set: settings.postizConfigured },
+    { name: "TRYPOST_API_KEY", set: settings.trypostConfigured },
+    { name: "LIGHTPOST_URL", set: settings.lightpostConfigured, note: "experimental" },
     { name: "STORAGE_DRIVER", set: settings.storage === "s3", note: "local (default) or s3" },
     { name: "ELEVENLABS_API_KEY", set: settings.elevenLabs, note: "optional: ElevenLabs voices and music" },
     { name: "CREATIFY_API_KEY", set: settings.creatify, note: "optional" },
@@ -328,14 +348,26 @@ export default async function SettingsPage() {
                   </a>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <a href="https://github.com/brainstormity/LightPost" target="_blank" rel="noopener noreferrer">
-                    LightPost
+                  <a href="https://publer.com/docs" target="_blank" rel="noopener noreferrer">
+                    Publer API
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <a href="https://publer.com/docs" target="_blank" rel="noopener noreferrer">
-                    Publer API
+                  <a href="https://docs.postiz.com/public-api/introduction" target="_blank" rel="noopener noreferrer">
+                    Postiz API
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <a href="https://docs.trypost.it/api-reference/introduction" target="_blank" rel="noopener noreferrer">
+                    TryPost API
+                    <ExternalLink className="h-3 w-3 ml-1" />
+                  </a>
+                </Button>
+                <Button variant="outline" size="sm" asChild>
+                  <a href="https://github.com/brainstormity/LightPost" target="_blank" rel="noopener noreferrer">
+                    LightPost
                     <ExternalLink className="h-3 w-3 ml-1" />
                   </a>
                 </Button>
