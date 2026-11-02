@@ -91,7 +91,9 @@ ducking. Music providers live in `src/lib/video-engine/music.ts`: a mood-filed l
 
 ### Media
 Use `src/lib/storage.ts`: `saveFile`, `publicUrl`, `keyFromUrl`, `localPath`. Social platforms fetch
-media by URL, so stored media must be reachable at `PUBLIC_URL` (or `S3_PUBLIC_URL`).
+media by URL, so stored media must be reachable at `PUBLIC_URL` (or `S3_PUBLIC_URL`). Publer, TryPost
+and LightPost import it by URL; Postiz gets the file as an upload (its upload-from-url only takes
+public HTTPS addresses).
 
 ### Design (BlockFrame)
 

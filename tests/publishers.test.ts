@@ -1,4 +1,7 @@
 import assert from "node:assert/strict";
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { test } from "node:test";
 import { getPublisher } from "../src/lib/publishers";
 import { createLightPostPublisher } from "../src/lib/publishers/lightpost";
@@ -679,6 +682,14 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 const HOUR_MS = 60 * 60 * 1000;
+const VIDEO_BYTES = new Uint8Array([0, 0, 0, 24, 102, 116, 121, 112]);
+
+async function postizUpload(request: Request): Promise<{ name: string; size: number }> {
+  assert.match(request.headers.get("content-type") ?? "", /^multipart\/form-data/);
+  const file = (await request.formData()).get("file");
+  assert.ok(file instanceof File);
+  return { name: file.name, size: file.size };
+}
 
 interface PostizCreateBody {
   type: string;
@@ -741,11 +752,14 @@ test("Postiz lists enabled channels on platforms Vidfiddle posts to", async () =
 
 test("Postiz uploads the video once and schedules every channel in one request", async () => {
   const slot = new Date(Date.now() + 3 * HOUR_MS).toISOString();
-  const uploads: Array<{ url?: string }> = [];
+  const uploads: Array<{ name: string; size: number }> = [];
   const creates: PostizCreateBody[] = [];
 
   await withFetch(
     async (request, url) => {
+      if (url.host === "public.example.com") {
+        return new Response(VIDEO_BYTES, { headers: { "content-type": "video/mp4" } });
+      }
       const path = url.pathname.replace("/public/v1", "");
       if (path === "/integrations") {
         return jsonResponse([
@@ -754,8 +768,8 @@ test("Postiz uploads the video once and schedules every channel in one request",
           { id: "tt", identifier: "tiktok", name: "TT" },
         ]);
       }
-      if (path === "/upload-from-url") {
-        uploads.push(await request.json());
+      if (path === "/upload") {
+        uploads.push(await postizUpload(request));
         return jsonResponse({ id: "m1", path: "https://uploads.postiz.local/v.mp4" });
       }
       if (path === "/find-slot/ig") {
@@ -794,7 +808,7 @@ test("Postiz uploads the video once and schedules every channel in one request",
     }
   );
 
-  assert.deepEqual(uploads, [{ url: "https://public.example.com/video.mp4" }]);
+  assert.deepEqual(uploads, [{ name: "video.mp4", size: VIDEO_BYTES.length }]);
   assert.equal(creates.length, 1);
 
   const body = creates[0]!;
@@ -818,6 +832,48 @@ test("Postiz uploads the video once and schedules every channel in one request",
   assert.equal(tt.settings.content_posting_method, "DIRECT_POST");
 });
 
+test("Postiz gets a locally stored video from disk, not from PUBLIC_URL", async () => {
+  const dataDir = await mkdtemp(path.join(tmpdir(), "vf-postiz-"));
+  await mkdir(path.join(dataDir, "media", "generated"), { recursive: true });
+  await writeFile(path.join(dataDir, "media", "generated", "abc.mp4"), VIDEO_BYTES);
+  const saved = { DATA_DIR: process.env.DATA_DIR, PUBLIC_URL: process.env.PUBLIC_URL };
+  process.env.DATA_DIR = dataDir;
+  process.env.PUBLIC_URL = "http://192.168.1.20:3000";
+  const uploads: Array<{ name: string; size: number }> = [];
+
+  try {
+    await withFetch(
+      async (request, url) => {
+        const path = url.pathname.replace("/public/v1", "");
+        if (path === "/integrations") return jsonResponse([{ id: "yt", identifier: "youtube", name: "YT" }]);
+        if (path === "/upload") {
+          uploads.push(await postizUpload(request));
+          return jsonResponse({ id: "m1", path: "https://uploads.postiz.local/v.mp4" });
+        }
+        if (path === "/posts" && request.method === "POST") return jsonResponse([{ postId: "p1", integration: "yt" }]);
+        throw new Error(`Unexpected request: ${request.method} ${url}`);
+      },
+      async () => {
+        await withEnv({ POSTIZ_API_KEY: "pz-key" }, async () => {
+          await createPostizPublisher().scheduleVideoPost({
+            videoUrl: "http://192.168.1.20:3000/media/generated/abc.mp4",
+            accounts: [{ accountId: "yt", platform: "youtube", caption: "Hi" }],
+            autoSchedule: false,
+          });
+        });
+      }
+    );
+  } finally {
+    for (const [key, value] of Object.entries(saved)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+    await rm(dataDir, { recursive: true, force: true });
+  }
+
+  assert.deepEqual(uploads, [{ name: "abc.mp4", size: VIDEO_BYTES.length }]);
+});
+
 test("Postiz posts now, keeps set times, and picks a time itself when find-slot fails", async () => {
   const creates: PostizCreateBody[] = [];
   const later = "2027-03-01T15:00:00.000Z";
@@ -825,6 +881,9 @@ test("Postiz posts now, keeps set times, and picks a time itself when find-slot 
 
   await withFetch(
     async (request, url) => {
+      if (url.host === "public.example.com") {
+        return new Response(VIDEO_BYTES, { headers: { "content-type": "video/mp4" } });
+      }
       const path = url.pathname.replace("/public/v1", "");
       if (path === "/integrations") {
         return jsonResponse([
@@ -832,7 +891,7 @@ test("Postiz posts now, keeps set times, and picks a time itself when find-slot 
           { id: "li", identifier: "linkedin-page", name: "LI" },
         ]);
       }
-      if (path === "/upload-from-url") {
+      if (path === "/upload") {
         return jsonResponse({ id: "m1", path: "https://uploads.postiz.local/v.mp4" });
       }
       if (path.startsWith("/find-slot/")) {

@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { keyFromUrl, localPath } from "@/lib/storage";
 import type { Platform } from "@/lib/supabase/types";
 import { autoScheduledAt, errorMessageFromBody, videoTitle } from "./shared";
 import type {
@@ -142,6 +144,26 @@ function normalizePost(post: PostizPost): PublisherPostStatus {
   };
 }
 
+/**
+ * The video's bytes, for Postiz's file upload. Read from disk when it's in local storage, otherwise
+ * downloaded from its URL (S3). Uploading the file means Postiz never has to reach Vidfiddle: its
+ * upload-from-url only takes public HTTPS addresses, whatever DISABLE_SSRF_PROTECTION says.
+ */
+async function loadVideo(videoUrl: string): Promise<{ data: Blob; name: string }> {
+  const name = new URL(videoUrl).pathname.split("/").pop() || "video.mp4";
+  const key = keyFromUrl(videoUrl);
+  const file = key ? localPath(key) : null;
+  if (file) {
+    return { data: new Blob([await readFile(file)], { type: "video/mp4" }), name };
+  }
+
+  const response = await fetch(videoUrl);
+  if (!response.ok) {
+    throw new Error(`Couldn't read the video to send to Postiz (${response.status} from ${videoUrl}).`);
+  }
+  return { data: await response.blob(), name };
+}
+
 export function isPostizConfigured(): boolean {
   return !!process.env.POSTIZ_API_KEY;
 }
@@ -155,7 +177,7 @@ export function createPostizPublisher(): Publisher {
   async function requestJson<T>(
     path: string,
     init: RequestInit = {},
-    context: "generic" | "mediaImport" = "generic"
+    context: "generic" | "mediaUpload" = "generic"
   ): Promise<T> {
     if (!apiKey) {
       throw new Error("POSTIZ_API_KEY is required for Postiz publishing.");
@@ -164,7 +186,8 @@ export function createPostizPublisher(): Publisher {
     const headers = new Headers(init.headers);
     headers.set("Authorization", apiKey);
     headers.set("Accept", "application/json");
-    if (init.body !== undefined && !headers.has("Content-Type")) {
+    // FormData sets its own multipart Content-Type.
+    if (init.body !== undefined && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
       headers.set("Content-Type", "application/json");
     }
 
@@ -186,10 +209,8 @@ export function createPostizPublisher(): Publisher {
           `Postiz API not found at ${baseUrl}. For a self-hosted install, set POSTIZ_URL to its backend URL, usually https://your-postiz/api.`
         );
       }
-      if (context === "mediaImport") {
-        throw new Error(
-          `${message} Postiz downloads the video from PUBLIC_URL, which must be a public address: it refuses localhost and private networks unless DISABLE_SSRF_PROTECTION is set on Postiz.`
-        );
+      if (context === "mediaUpload") {
+        throw new Error(`Postiz didn't accept the video upload: ${message}`);
       }
 
       throw new Error(`Postiz: ${message}`);
@@ -281,11 +302,10 @@ export function createPostizPublisher(): Publisher {
         integration: resolveIntegration(account, integrations),
       }));
 
-      const media = await requestJson<PostizMedia>(
-        "/upload-from-url",
-        { method: "POST", body: JSON.stringify({ url: params.videoUrl }) },
-        "mediaImport"
-      );
+      const video = await loadVideo(params.videoUrl);
+      const form = new FormData();
+      form.append("file", video.data, video.name);
+      const media = await requestJson<PostizMedia>("/upload", { method: "POST", body: form }, "mediaUpload");
 
       // The public API takes one date per request, so group the channels by when they post.
       let autoDate: string | null = null;
