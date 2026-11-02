@@ -130,7 +130,7 @@ docker compose up -d
 Open http://localhost:3000 and sign in with `APP_PASSWORD`. Add a feed under **Feeds**, pick a post under
 **Content**, and convert it. Choose **Local engine (OpenAI)** in the style step.
 
-The first build takes a few minutes. Compose starts three services:
+Compose pulls the published image (amd64 or arm64) and starts three services:
 
 | Service    | What it does                                             |
 | ---------- | -------------------------------------------------------- |
@@ -139,6 +139,22 @@ The first build takes a few minutes. Compose starts three services:
 | `postgres` | The database                                             |
 
 Videos and images live in the `media` volume. Back up both volumes, `postgres` and `media`.
+
+To update, pull the new image and restart. The worker applies database migrations when it starts.
+
+```bash
+git pull && docker compose pull && docker compose up -d
+```
+
+Set `VIDFIDDLE_VERSION` in `.env` (for example `0.2.0`) to stay on a release. To run your own changes,
+build from the checkout with `docker compose up -d --build`.
+
+### One container
+
+Hosts that run one container per app (Railway, PikaPods, an Unraid template) can run the app and the
+worker together. Use the image `ghcr.io/zellerhaus/vidfiddle`, set the start command to
+`node scripts/start-all.mjs`, mount a volume at `/data`, and set `DATABASE_URL` to your Postgres database
+alongside the settings in `.env.example`. The app listens on `PORT` (default 3000).
 
 ## Configuration
 

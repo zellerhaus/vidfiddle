@@ -2,8 +2,10 @@
 # Settings come from .env (copy .env.example). DATABASE_URL and storage paths are set here.
 
 x-app: &app
+  # The published image (amd64 and arm64). Compose builds from this checkout instead if the pull
+  # fails, or when you run `docker compose up --build`.
+  image: ghcr.io/zellerhaus/vidfiddle:${VIDFIDDLE_VERSION:-latest}
   build: .
-  image: vidfiddle:local
   restart: unless-stopped
   env_file:
     - path: .env
