@@ -20,7 +20,7 @@ social media. See README.md for what it does and how to run it.
 npm run dev          # web app (localhost:3000)
 npm run worker       # worker: migrations, cron schedule, local renders
 npm run start:all    # worker, then the app once migrations ran (single-container hosts)
-npm test             # node:test via tsx (TEST_DATABASE_URL enables the DB-backed test)
+npm test             # node:test via tsx (TEST_DATABASE_URL enables the DB-backed tests)
 npm run lint
 npx tsc --noEmit
 npm run db:generate  # after editing src/db/schema.ts

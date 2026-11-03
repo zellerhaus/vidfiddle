@@ -1,6 +1,6 @@
 # Testing Vidfiddle
 
-`npm test` runs the unit and route tests (set `TEST_DATABASE_URL` to include the database test).
+`npm test` runs the unit and route tests (set `TEST_DATABASE_URL` to include the database tests).
 This page covers the rest: checks that need a running install, and checks that need your own
 accounts.
 

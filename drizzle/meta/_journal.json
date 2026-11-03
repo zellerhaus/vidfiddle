@@ -15,6 +15,13 @@
       "when": 1793381752047,
       "tag": "0001_drop_youtube_clips",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793718564428,
+      "tag": "0002_allow_reposts",
+      "breakpoints": true
     }
   ]
 }

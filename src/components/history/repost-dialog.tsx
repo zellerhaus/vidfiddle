@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import type { Platform, ScheduledPost } from "@/lib/supabase/types";
 
 const PLATFORMS: { value: Platform; label: string }[] = [
@@ -89,6 +90,8 @@ export function RepostDialog({
       setSelectedPlatforms([]);
       setCaption("");
       onOpenChange(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to schedule repost");
     } finally {
       setIsSubmitting(false);
     }

@@ -255,10 +255,10 @@ export const scheduled_posts = pgTable(
       foreignColumns: [table.id],
       name: "scheduled_posts_original_post_id_fkey",
     }).onDelete("set null"),
-    unique("scheduled_posts_video_id_platform_key").on(
-      table.video_id,
-      table.platform
-    ),
+    // One original post per video and platform; reposts of it are rows of their own.
+    uniqueIndex("idx_scheduled_posts_video_platform_original")
+      .on(table.video_id, table.platform)
+      .where(sql`${table.is_repost} = false`),
   ]
 );
 
