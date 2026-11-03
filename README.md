@@ -276,8 +276,8 @@ npx tsc --noEmit
 - The database schema lives in [`src/db/schema.ts`](src/db/schema.ts). After changing it, run
   `npm run db:generate` to write a migration to `drizzle/`. `npm run migrate` (and the worker, at
   startup) applies it.
-- One test writes to a real database. Point `TEST_DATABASE_URL` at a disposable Postgres to run it;
-  otherwise it is skipped.
+- Two tests write to a real database. Point `TEST_DATABASE_URL` at a disposable, migrated Postgres
+  to run them; otherwise they are skipped.
 - The local engine is in [`src/lib/video-engine/`](src/lib/video-engine). Each stage (scene planning,
   voice, images, word timing) is a small interface, so adding a provider such as ElevenLabs voices or
   Pexels footage means writing one class.

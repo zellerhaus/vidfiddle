@@ -145,7 +145,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     // Schedule via Publer
     const { jobId } = await publisher.scheduleVideoPost({
       videoUrl: video.video_url,
-      accounts: postsToSchedule,
+      accounts: postsToSchedule.map((post) => ({
+        ...post,
+        scheduledAt: scheduled_at,
+      })),
       autoSchedule: !scheduled_at, // Use auto-schedule if no specific time provided
     });
 
@@ -168,15 +171,26 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       };
     });
 
-    let scheduledPosts: ScheduledPost[] = [];
+    let scheduledPosts: ScheduledPost[];
     try {
       scheduledPosts = await db
         .insert(scheduled_posts)
         .values(scheduledPostsData)
         .returning();
     } catch (insertError) {
+      // The publisher already has the posts, so say so: retrying would post the video twice.
       console.error("Error creating repost scheduled posts:", insertError);
-      // Don't fail - the Publer job is already created
+      const details =
+        insertError instanceof Error ? insertError.message : String(insertError);
+      return NextResponse.json(
+        {
+          error:
+            "The repost is scheduled in your publisher, but Vidfiddle couldn't record it, so it won't be tracked here. Check your publisher before trying again, or the video will post twice.",
+          details,
+          publerJobId: jobId,
+        },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json({
@@ -184,7 +198,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       message: "Repost scheduled successfully",
       publerJobId: jobId,
       scheduledPlatforms: postsToSchedule.map((p) => p.platform),
-      scheduledPosts: scheduledPosts || [],
+      scheduledPosts,
     });
   } catch (error) {
     console.error("Error scheduling repost:", error);
