@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   verifyPassword,
   signSessionValue,
+  isHttpsRequest,
   COOKIE_NAME,
   COOKIE_MAX_AGE,
 } from "@/lib/auth";
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
 
     response.cookies.set(COOKIE_NAME, signedValue, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: isHttpsRequest(request),
       sameSite: "lax",
       path: "/",
       maxAge: COOKIE_MAX_AGE,
