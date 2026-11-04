@@ -1,6 +1,15 @@
 export const COOKIE_NAME = "session";
 export const COOKIE_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
+// Whether the browser reached the app over HTTPS, directly or through a proxy that sets
+// X-Forwarded-Proto. The session cookie is Secure only then: browsers drop Secure cookies on plain
+// HTTP addresses other than localhost, so a server opened at http://192.168.1.20:3000 couldn't log in.
+export function isHttpsRequest(request: Request): boolean {
+  const forwarded = request.headers.get("x-forwarded-proto");
+  if (forwarded) return forwarded.split(",")[0].trim().toLowerCase() === "https";
+  return new URL(request.url).protocol === "https:";
+}
+
 async function getSigningKey(): Promise<CryptoKey> {
   const secret =
     process.env.APP_SECRET ||
